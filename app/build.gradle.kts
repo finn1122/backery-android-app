@@ -30,22 +30,28 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.12"
     }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
+    }
+}
+
+kotlin {
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
     }
 }
 
@@ -77,6 +83,8 @@ dependencies {
 
     // Dependencia de Hilt para Jetpack Compose
     implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
+    implementation ("org.jetbrains.kotlin:kotlin-stdlib:1.9.23")
+    implementation ("androidx.compose.compiler:compiler:1.5.12")
 }
 
 kapt {
