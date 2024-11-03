@@ -5,7 +5,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
-    const val BASE_URL = "http://192.168.3.74/bakery/api/"
+    const val BASE_URL = "http://192.168.3.30/bakery/api/"
 
     // Crea un cliente OkHttp con el interceptor
     private val httpClient = OkHttpClient.Builder()
