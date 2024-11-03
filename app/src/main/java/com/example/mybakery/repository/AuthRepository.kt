@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.mybakery.data.model.*
 import com.example.mybakery.data.network.ApiService
 import com.example.mybakery.data.network.RetrofitClient
+import com.example.mybakery.utils.PreferencesHelper
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -11,7 +12,9 @@ import retrofit2.HttpException
 
 private const val TAG = "AuthRepository"
 
-class AuthRepository {
+class AuthRepository(
+    private val preferencesHelper: PreferencesHelper
+) {
     private val apiService: ApiService = RetrofitClient.apiService
     private val gson = Gson()
 
@@ -23,6 +26,15 @@ class AuthRepository {
             val loginResponse = withContext(Dispatchers.IO) {
                 apiService.login(credentials)
             }
+
+            // Almacenar el token y los datos del usuario en SharedPreferences
+            preferencesHelper.saveToken(loginResponse.token)
+            preferencesHelper.saveUserName(loginResponse.user.name)
+            preferencesHelper.saveUserEmail(loginResponse.user.email)
+            if (loginResponse.user.roles.isNotEmpty()) {
+                preferencesHelper.saveUserRole(loginResponse.user.roles[0])
+            }
+
             Result.success(loginResponse)
         } catch (e: Exception) {
             Log.e(TAG, "Error al intentar iniciar sesión", e)
@@ -64,5 +76,9 @@ class AuthRepository {
                 Result.failure(e)
             }
         }
+    }
+
+    suspend fun logout() {
+        preferencesHelper.clear() // Limpiar datos al cerrar sesión
     }
 }

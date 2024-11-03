@@ -8,11 +8,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import com.example.mybakery.data.model.LoginResponse
-import com.example.mybakery.repository.AuthRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.example.mybakery.data.model.LoginResponse
+import com.example.mybakery.repository.AuthRepository
+import com.example.mybakery.utils.PreferencesHelper
 
 @Composable
 fun LoginScreen(
@@ -60,25 +61,22 @@ fun LoginScreen(
             onClick = {
                 isLoading = true
                 errorMessage = ""
-                scope.launch(Dispatchers.IO) {
-                    try {
-                        val result = authRepository.login(email, password)
-                        if (result.isSuccess) {
-                            withContext(Dispatchers.Main) {
-                                onLoginSuccess(result.getOrThrow())
-                            }
-                        } else {
-                            throw result.exceptionOrNull() ?: Exception("Error desconocido")
+                scope.launch {
+                    val result = withContext(Dispatchers.IO) {
+                        authRepository.login(email, password)
+                    }
+                    result.onSuccess { loginResponse ->
+                        withContext(Dispatchers.Main) {
+                            onLoginSuccess(loginResponse)
                         }
-                    } catch (e: Exception) {
+                    }.onFailure { e ->
                         withContext(Dispatchers.Main) {
                             errorMessage = e.message ?: "Error desconocido"
                             Log.e("LoginScreen", "Error en el login: ${e.message}")
                         }
-                    } finally {
-                        withContext(Dispatchers.Main) {
-                            isLoading = false
-                        }
+                    }
+                    withContext(Dispatchers.Main) {
+                        isLoading = false
                     }
                 }
             },
