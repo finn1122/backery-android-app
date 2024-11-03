@@ -19,6 +19,7 @@ import com.example.mybakery.utils.PreferencesHelper
 fun LoginScreen(
     authRepository: AuthRepository,
     onLoginSuccess: (LoginResponse) -> Unit,
+    onAdminBakeryCheck: () -> Unit,
     onNavigateToRegister: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
@@ -61,21 +62,34 @@ fun LoginScreen(
             onClick = {
                 isLoading = true
                 errorMessage = ""
-                scope.launch {
-                    val result = withContext(Dispatchers.IO) {
-                        authRepository.login(email, password)
-                    }
-                    result.onSuccess { loginResponse ->
-                        withContext(Dispatchers.Main) {
-                            onLoginSuccess(loginResponse)
+                scope.launch(Dispatchers.Main) {
+                    try {
+                        val loginResult = withContext(Dispatchers.IO) {
+                            authRepository.login(email, password)
                         }
-                    }.onFailure { e ->
-                        withContext(Dispatchers.Main) {
+                        loginResult.onSuccess { loginResponse ->
+                            onLoginSuccess(loginResponse)
+
+                            val userRole = loginResponse.user.roles.firstOrNull()
+                            if (userRole == "admin") {
+                                val bakeryResult = withContext(Dispatchers.IO) {
+                                    authRepository.verifyBakery()
+                                }
+                                bakeryResult.onSuccess {
+                                    onAdminBakeryCheck()
+                                }.onFailure { e: Throwable ->
+                                    errorMessage = e.message ?: "Error desconocido en la verificación de la panadería"
+                                    Log.e("LoginScreen", "Error en la verificación de la panadería: ${e.message}")
+                                }
+                            }
+                        }.onFailure { e: Throwable ->
                             errorMessage = e.message ?: "Error desconocido"
                             Log.e("LoginScreen", "Error en el login: ${e.message}")
                         }
-                    }
-                    withContext(Dispatchers.Main) {
+                    } catch (e: Exception) {
+                        errorMessage = e.message ?: "Error desconocido"
+                        Log.e("LoginScreen", "Error en la operación: ${e.message}")
+                    } finally {
                         isLoading = false
                     }
                 }

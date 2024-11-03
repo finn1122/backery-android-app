@@ -17,8 +17,17 @@ fun AppContent(authRepository: AuthRepository) {
             LoginScreen(
                 authRepository = authRepository,
                 onLoginSuccess = {
-                    // Puedes navegar a una pantalla principal o página de inicio si tienes una
-                    // navController.navigate("home")
+                    // Navegar a una pantalla principal o pantalla de inicio
+                    navController.navigate("home") {
+                        // Esto borra la pila de navegación para que el usuario no pueda volver a la pantalla de inicio de sesión con el botón de retroceso
+                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                    }
+                },
+                onAdminBakeryCheck = {
+                    // Navegar a una pantalla específica de administradores o a una pantalla de verificación
+                    navController.navigate("adminBakery") {
+                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                    }
                 },
                 onNavigateToRegister = {
                     navController.navigate("register")
@@ -32,6 +41,13 @@ fun AppContent(authRepository: AuthRepository) {
                     navController.popBackStack()
                 }
             )
+        }
+        // Define aquí más composables para otras pantallas, como la pantalla principal o de administradores
+        composable("home") {
+            // Aquí deberías mostrar la pantalla principal de tu aplicación
+        }
+        composable("adminBakery") {
+            // Aquí deberías mostrar la pantalla de administradores o de verificación de la panadería
         }
     }
 }
