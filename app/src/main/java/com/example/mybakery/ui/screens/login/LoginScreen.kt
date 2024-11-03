@@ -10,17 +10,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.example.mybakery.data.model.BakeryResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.example.mybakery.data.model.LoginResponse
 import com.example.mybakery.repository.AuthRepository
+import com.example.mybakery.utils.PreferencesHelper
+import retrofit2.Response
 
 @Composable
 fun LoginScreen(
     authRepository: AuthRepository,
-    onLoginSuccess: (LoginResponse) -> Unit,
-    onAdminBakeryCheck: () -> Unit,
+    onLoginSuccess: () -> Unit,
+    onAdminBakeryCheck: (Boolean) -> Unit,
     onNavigateToRegister: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
@@ -29,6 +32,7 @@ fun LoginScreen(
     var errorMessage by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val preferencesHelper = PreferencesHelper(context)
 
     Column(
         modifier = Modifier
@@ -64,30 +68,50 @@ fun LoginScreen(
             onClick = {
                 isLoading = true
                 errorMessage = ""
-                scope.launch(Dispatchers.Main) {
+                scope.launch {
                     try {
                         val loginResult = withContext(Dispatchers.IO) {
                             authRepository.login(email, password)
                         }
                         loginResult.onSuccess { loginResponse ->
                             val userRole = loginResponse.user.roles.firstOrNull()
+                            val token = loginResponse.token
+
+                            // Guardar datos en las preferencias
+                            Log.d("LoginScreen", "Login successful. Saving token and user role.")
+                            preferencesHelper.saveToken(token)
+                            preferencesHelper.saveUserRole(userRole ?: "")
+                            preferencesHelper.saveUserName(loginResponse.user.name)
+                            preferencesHelper.saveUserEmail(loginResponse.user.email)
+
                             if (userRole != null) {
                                 Toast.makeText(context, "Rol del usuario: $userRole", Toast.LENGTH_SHORT).show()
                             }
 
-                            onLoginSuccess(loginResponse)
+                            Log.d("LoginScreen", "User role: $userRole")
 
-                            if (userRole == "admin") {
-                                val bakeryResult = withContext(Dispatchers.IO) {
-                                    authRepository.verifyBakery()
+                            if (userRole == "admin" && token.isNotEmpty()) {
+                                Log.d("LoginScreen", "Logging in as admin. Verifying bakery...")
+
+                                val bakeryResponse: Response<List<BakeryResponse>> = withContext(Dispatchers.IO) {
+                                    authRepository.verifyBakery("Bearer $token")
                                 }
-                                bakeryResult.onSuccess {
-                                    Toast.makeText(context, "Admin ha iniciado sesión", Toast.LENGTH_SHORT).show()
-                                    onAdminBakeryCheck()
-                                }.onFailure { e: Throwable ->
-                                    errorMessage = e.message ?: "Error desconocido en la verificación de la panadería"
-                                    Log.e("LoginScreen", "Error en la verificación de la panadería: ${e.message}")
+
+                                Log.d("LoginScreen", "Bakery Response Code: ${bakeryResponse.code()}")
+
+                                if (bakeryResponse.isSuccessful) {
+                                    val bakeryList = bakeryResponse.body()
+                                    bakeryList?.let {
+                                        val hasBakery = it.isNotEmpty()
+                                        Log.d("LoginScreen", "Bakery List: $bakeryList")
+                                        onAdminBakeryCheck(hasBakery)
+                                    }
+                                } else {
+                                    errorMessage = "Error al verificar la panadería: ${bakeryResponse.errorBody()?.string()}"
+                                    Log.e("LoginScreen", "Error en la verificación de la panadería: ${bakeryResponse.errorBody()?.string()}")
                                 }
+                            } else {
+                                onLoginSuccess()
                             }
                         }.onFailure { e: Throwable ->
                             errorMessage = e.message ?: "Error desconocido"

@@ -20,6 +20,6 @@ interface ApiService {
     suspend fun resendVerificationEmail(@Body body: Map<String, String>): VerificationEmailResponse
 
     @GET("user/bakery")
-    suspend fun verifyBakery(@Header("Authorization") token: String): Response<BakeryResponse>
+    suspend fun verifyBakery(@Header("Authorization") token: String): Response<List<BakeryResponse>>
 
 }

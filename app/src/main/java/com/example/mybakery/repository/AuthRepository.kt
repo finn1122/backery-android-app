@@ -9,6 +9,7 @@ import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
+import retrofit2.Response
 
 private const val TAG = "AuthRepository"
 
@@ -19,25 +20,11 @@ class AuthRepository(
     private val gson = Gson()
 
     suspend fun login(email: String, password: String): Result<LoginResponse> {
-        val credentials = LoginCredentials(email, password)
-        Log.d(TAG, "Iniciando sesión para el usuario: $email")
-
         return try {
-            val loginResponse = withContext(Dispatchers.IO) {
-                apiService.login(credentials)
-            }
-
-            // Almacenar el token y los datos del usuario en SharedPreferences
-            preferencesHelper.saveToken(loginResponse.token)
-            preferencesHelper.saveUserName(loginResponse.user.name)
-            preferencesHelper.saveUserEmail(loginResponse.user.email)
-            if (loginResponse.user.roles.isNotEmpty()) {
-                preferencesHelper.saveUserRole(loginResponse.user.roles[0])
-            }
-
-            Result.success(loginResponse)
+            val credentials = LoginCredentials(email, password)
+            val response = apiService.login(credentials)
+            Result.success(response)
         } catch (e: Exception) {
-            Log.e(TAG, "Error al intentar iniciar sesión", e)
             Result.failure(e)
         }
     }
@@ -78,24 +65,12 @@ class AuthRepository(
         }
     }
 
-    suspend fun verifyBakery(): Result<BakeryResponse> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val token = preferencesHelper.getToken()
-                // Suponiendo que uses Retrofit para hacer la llamada a la API
-                val response = apiService.verifyBakery("Bearer $token")
-                if (response.isSuccessful && response.body() != null) {
-                    Result.success(response.body()!!)
-                } else {
-                    Result.failure(Exception("Error en la verificación de la panadería"))
-                }
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
-        }
+    suspend fun verifyBakery(token: String): Response<List<BakeryResponse>> {
+        Log.d("AuthRepository", "Calling verifyBakery with token: $token")
+        return apiService.verifyBakery(token)
     }
 
-    suspend fun logout() {
-        preferencesHelper.clear() // Limpiar datos al cerrar sesión
-    }
+    /*suspend fun logout() {
+        preferencesHelper.clear()
+    }*/
 }

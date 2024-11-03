@@ -1,4 +1,4 @@
-package com.example.mybakery.ui.screens.components.login
+package com.example.mybakery.ui.screens.login
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
