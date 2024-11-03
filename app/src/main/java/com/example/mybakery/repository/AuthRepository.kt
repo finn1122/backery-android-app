@@ -52,15 +52,17 @@ class AuthRepository {
         }
     }
 
-    suspend fun resendVerificationEmail(): Result<VerificationEmailResponse> {
-        return try {
-            val response = withContext(Dispatchers.IO) {
-                apiService.resendVerificationEmail()
+    suspend fun resendVerificationEmail(email: String): Result<VerificationEmailResponse> {
+        return withContext(Dispatchers.IO) {
+            try {
+                // Asegúrate de enviar el email en el cuerpo de la solicitud, si es necesario
+                val response = apiService.resendVerificationEmail(mapOf("email" to email))
+                Result.success(response)
+            } catch (e: HttpException) {
+                Result.failure(e)
+            } catch (e: Exception) {
+                Result.failure(e)
             }
-            Result.success(response)
-        } catch (e: Exception) {
-            Log.e("AuthRepository", "Error al reenviar correo de verificación", e)
-            Result.failure(e)
         }
     }
 }

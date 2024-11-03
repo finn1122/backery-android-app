@@ -16,7 +16,7 @@ interface ApiService {
     suspend fun register(@Body credentials: RegisterCredentials): RegisterResponse
 
     @POST("email/verification-notification")
-    suspend fun resendVerificationEmail(): VerificationEmailResponse
+    suspend fun resendVerificationEmail(@Body body: Map<String, String>): VerificationEmailResponse
 
     @GET("users")
     suspend fun getUsers(): List<User>

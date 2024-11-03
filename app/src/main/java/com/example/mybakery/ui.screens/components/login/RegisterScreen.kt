@@ -7,10 +7,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import com.example.mybakery.repository.AuthRepository
 
 @Composable
@@ -30,13 +28,20 @@ fun RegisterScreen(
     var timer by remember { mutableStateOf(60) }
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(isRegisterSuccess) {
+    LaunchedEffect(isRegisterSuccess, timer) {
         if (isRegisterSuccess) {
             canResendEmail = false
             while (timer > 0) {
                 delay(1000L)
                 timer--
             }
+            canResendEmail = true
+        }
+    }
+
+    // Correct timer reset and button reactivation on resend verification email
+    LaunchedEffect(timer) {
+        if (timer == 0) {
             canResendEmail = true
         }
     }
@@ -51,11 +56,13 @@ fun RegisterScreen(
         Text(text = "Register", style = MaterialTheme.typography.bodyLarge)
 
         if (isRegisterSuccess) {
-            // Mostrar mensaje de confirmación después de un registro exitoso
             Text(text = "$name, tu registro fue correcto. Revisa tu email $email para confirmar tu registro.", style = MaterialTheme.typography.bodyLarge)
             Spacer(modifier = Modifier.height(16.dp))
-            Text(text = successMessage, color = MaterialTheme.colorScheme.primary)
-            Spacer(modifier = Modifier.height(16.dp))
+
+            if (successMessage.isNotEmpty()) {
+                Text(text = successMessage, color = MaterialTheme.colorScheme.primary)
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
             Button(
                 onClick = {
@@ -64,24 +71,20 @@ fun RegisterScreen(
                     successMessage = ""
                     scope.launch {
                         try {
-                            val result = authRepository.resendVerificationEmail()
+                            val result = authRepository.resendVerificationEmail(email)
                             result.onSuccess { resendResponse ->
-                                withContext(Dispatchers.Main) {
-                                    successMessage = resendResponse.message
-                                }
+                                successMessage = resendResponse.message
+                                timer = 60 // Reiniciar el temporizador después del reenvío
+                                canResendEmail = false
                             }.onFailure { e ->
-                                withContext(Dispatchers.Main) {
-                                    errorMessage = e.message ?: "Failed to resend verification email"
-                                }
+                                errorMessage = e.message ?: "Failed to resend verification email"
+                                canResendEmail = true // Habilitar el botón en caso de fallo
                             }
                         } catch (e: Exception) {
-                            withContext(Dispatchers.Main) {
-                                errorMessage = e.message ?: "Failed to resend verification email"
-                            }
+                            errorMessage = e.message ?: "Failed to resend verification email"
+                            canResendEmail = true // Habilitar el botón en caso de fallo
                         } finally {
-                            withContext(Dispatchers.Main) {
-                                isLoading = false
-                            }
+                            isLoading = false
                         }
                     }
                 },
@@ -100,6 +103,11 @@ fun RegisterScreen(
                         Text("Puedes reenviar el email en $timer segundos")
                     }
                 }
+            }
+
+            if (errorMessage.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
             }
         } else {
             // Mostrar formulario de registro
@@ -150,24 +158,16 @@ fun RegisterScreen(
                         try {
                             val result = authRepository.register(name, email, password, passwordConfirmation)
                             result.onSuccess {
-                                withContext(Dispatchers.Main) {
-                                    successMessage = "Successfully registered. Please check your email for verification."
-                                    isRegisterSuccess = true  // Actualiza el estado cuando el registro es exitoso
-                                    timer = 60 // Reiniciar el temporizador
-                                }
+                                successMessage = "Successfully registered. Please check your email for verification."
+                                isRegisterSuccess = true  // Actualiza el estado cuando el registro es exitoso
+                                timer = 60 // Reiniciar el temporizador
                             }.onFailure { e ->
-                                withContext(Dispatchers.Main) {
-                                    errorMessage = e.message ?: "Registration failed"
-                                }
-                            }
-                        } catch (e: Exception) {
-                            withContext(Dispatchers.Main) {
                                 errorMessage = e.message ?: "Registration failed"
                             }
+                        } catch (e: Exception) {
+                            errorMessage = e.message ?: "Registration failed"
                         } finally {
-                            withContext(Dispatchers.Main) {
-                                isLoading = false
-                            }
+                            isLoading = false
                         }
                     }
                 },
