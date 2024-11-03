@@ -2,32 +2,31 @@ package com.example.mybakery.ui.screens.components.login
 
 import android.util.Log
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import com.example.mybakery.data.model.RegisterCredentials
 import com.example.mybakery.repository.AuthRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-private const val TAG = "RegisterScreen"
-
 @Composable
-fun RegisterScreen(authRepository: AuthRepository, onRegisterSuccess: () -> Unit) {
+fun RegisterScreen(
+    authRepository: AuthRepository,
+    onRegisterSuccess: () -> Unit
+) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
+    var successMessage by remember { mutableStateOf("") }
+    var showResendButton by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     Column(
@@ -37,14 +36,14 @@ fun RegisterScreen(authRepository: AuthRepository, onRegisterSuccess: () -> Unit
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Registro", style = MaterialTheme.typography.titleMedium)
+        Text(text = "Register", style = MaterialTheme.typography.bodyLarge)
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
             value = name,
             onValueChange = { name = it },
-            label = { Text("Nombre") },
+            label = { Text("Name") },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -62,7 +61,7 @@ fun RegisterScreen(authRepository: AuthRepository, onRegisterSuccess: () -> Unit
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Contraseña") },
+            label = { Text("Password") },
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth()
         )
@@ -72,47 +71,48 @@ fun RegisterScreen(authRepository: AuthRepository, onRegisterSuccess: () -> Unit
         OutlinedTextField(
             value = confirmPassword,
             onValueChange = { confirmPassword = it },
-            label = { Text("Confirmar Contraseña") },
+            label = { Text("Confirm Password") },
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         Button(
             onClick = {
                 isLoading = true
                 errorMessage = ""
+                successMessage = ""
                 scope.launch(Dispatchers.IO) {
                     try {
-                        Log.d(TAG, "Iniciando registro con nombre: $name, email: $email")
                         if (password != confirmPassword) {
                             throw Exception("Las contraseñas no coinciden")
                         }
-                        val credentials = RegisterCredentials(name, email, password, confirmPassword)
 
-                        // Lógica de registro en el repositorio de autenticación (authRepository).
-                        val response = authRepository.register(
-                            credentials.name,
-                            credentials.email,
-                            credentials.password,
-                            credentials.password_confirmation
-                        )
-                        if (response != null) {
-                            withContext(Dispatchers.Main) {
-                                Log.d(TAG, "Registro exitoso")
-                                onRegisterSuccess()
+                        val result = authRepository.register(name, email, password, confirmPassword)
+                        if (result.isSuccess) {
+                            val response = result.getOrNull()
+                            if (response != null) {
+                                withContext(Dispatchers.Main) {
+                                    successMessage = "Registro exitoso. Por favor, verifica tu correo electrónico."
+                                    onRegisterSuccess()
+                                }
+                                delay(60000) // 60 segundos de espera
+                                withContext(Dispatchers.Main) {
+                                    showResendButton = true
+                                }
+                            } else {
+                                withContext(Dispatchers.Main) {
+                                    errorMessage = "Error inesperado al registrar"
+                                }
                             }
                         } else {
-                            withContext(Dispatchers.Main) {
-                                Log.e(TAG, "Error inesperado en el registro: Respuesta nula")
-                                errorMessage = "Error inesperado en el registro."
-                            }
+                            throw result.exceptionOrNull() ?: Exception("Error desconocido")
                         }
                     } catch (e: Exception) {
                         withContext(Dispatchers.Main) {
-                            Log.e(TAG, "Error durante el registro", e)
-                            errorMessage = e.message ?: "Error inesperado"
+                            errorMessage = e.message ?: "Error desconocido"
+                            Log.e("RegisterScreen", "Error en el registro: ${e.message}")
                         }
                     } finally {
                         withContext(Dispatchers.Main) {
@@ -130,13 +130,41 @@ fun RegisterScreen(authRepository: AuthRepository, onRegisterSuccess: () -> Unit
                     modifier = Modifier.size(24.dp)
                 )
             } else {
-                Text("Registrar")
+                Text("Register")
             }
         }
 
         if (errorMessage.isNotEmpty()) {
             Spacer(modifier = Modifier.height(16.dp))
             Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
+        }
+
+        if (successMessage.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(text = successMessage, color = MaterialTheme.colorScheme.primary)
+
+            if (showResendButton) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = {
+                        scope.launch(Dispatchers.IO) {
+                            try {
+                                val resendResponse = authRepository.resendVerificationEmail()
+                                withContext(Dispatchers.Main) {
+                                    successMessage = resendResponse?.message ?: "Correo de verificación reenviado."
+                                }
+                            } catch (e: Exception) {
+                                withContext(Dispatchers.Main) {
+                                    errorMessage = "Error al reenviar el correo: ${e.message}"
+                                }
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Reenviar correo de verificación")
+                }
+            }
         }
     }
 }
