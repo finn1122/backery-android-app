@@ -1,18 +1,17 @@
-package com.example.mybakery.ui.screens.components.login
+package com.example.mybakery.ui.screens.login
 
 import android.util.Log
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.mybakery.data.model.LoginResponse
 import com.example.mybakery.repository.AuthRepository
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
@@ -21,6 +20,8 @@ fun LoginScreen(
     onLoginSuccess: (LoginResponse) -> Unit,
     onNavigateToRegister: () -> Unit
 ) {
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
@@ -29,42 +30,50 @@ fun LoginScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Login", style = MaterialTheme.typography.titleMedium)
+        Text(text = "Login", style = MaterialTheme.typography.bodyLarge)
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        LoginForm(
-            onLogin = { credentials ->
-                Log.d("LoginScreen", "Iniciando sesión para el usuario: ${credentials.email}")
+        OutlinedTextField(
+            value = email,
+            onValueChange = { email = it },
+            label = { Text("Email") },
+            modifier = Modifier.fillMaxWidth()
+        )
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = password,
+            onValueChange = { password = it },
+            label = { Text("Password") },
+            visualTransformation = PasswordVisualTransformation(),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
                 isLoading = true
                 errorMessage = ""
-
                 scope.launch(Dispatchers.IO) {
                     try {
-                        val response = authRepository.login(credentials.email, credentials.password)
-
-                        if (response != null) {
+                        val result = authRepository.login(email, password)
+                        if (result.isSuccess) {
                             withContext(Dispatchers.Main) {
-                                onLoginSuccess(response)
+                                onLoginSuccess(result.getOrThrow())
                             }
                         } else {
-                            withContext(Dispatchers.Main) {
-                                errorMessage = "Error inesperado al iniciar sesión."
-                            }
+                            throw result.exceptionOrNull() ?: Exception("Error desconocido")
                         }
                     } catch (e: Exception) {
                         withContext(Dispatchers.Main) {
-                            errorMessage = when {
-                                e.message?.contains("Invalid credentials") == true -> "Credenciales inválidas."
-                                e.message?.contains("Email not verified") == true -> "El correo no está verificado."
-                                e.message?.contains("User account is inactive") == true -> "La cuenta de usuario está inactiva."
-                                else -> "Error inesperado: ${e.message}"
-                            }
-                            Log.e("LoginScreen", "Error en el inicio de sesión: ${e.message}")
+                            errorMessage = e.message ?: "Error desconocido"
+                            Log.e("LoginScreen", "Error en el login: ${e.message}")
                         }
                     } finally {
                         withContext(Dispatchers.Main) {
@@ -73,18 +82,28 @@ fun LoginScreen(
                     }
                 }
             },
-            isLoading = isLoading,
-            errorMessage = errorMessage
-        )
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !isLoading
+        ) {
+            if (isLoading) {
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(24.dp)
+                )
+            } else {
+                Text("Login")
+            }
+        }
+
+        if (errorMessage.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = "¿No tienes una cuenta? Regístrate",
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.clickable {
-                onNavigateToRegister()
-            }
-        )
+        TextButton(onClick = onNavigateToRegister) {
+            Text("¿No tienes una cuenta? Regístrate")
+        }
     }
 }

@@ -15,18 +15,18 @@ class AuthRepository {
     private val apiService: ApiService = RetrofitClient.apiService
     private val gson = Gson()
 
-
-    suspend fun login(email: String, password: String): LoginResponse? {
+    suspend fun login(email: String, password: String): Result<LoginResponse> {
         val credentials = LoginCredentials(email, password)
         Log.d(TAG, "Iniciando sesión para el usuario: $email")
 
         return try {
-            withContext(Dispatchers.IO) {
+            val loginResponse = withContext(Dispatchers.IO) {
                 apiService.login(credentials)
             }
+            Result.success(loginResponse)
         } catch (e: Exception) {
             Log.e(TAG, "Error al intentar iniciar sesión", e)
-            null
+            Result.failure(e)
         }
     }
 
@@ -52,14 +52,15 @@ class AuthRepository {
         }
     }
 
-    suspend fun resendVerificationEmail(): VerificationEmailResponse? {
+    suspend fun resendVerificationEmail(): Result<VerificationEmailResponse> {
         return try {
-            withContext(Dispatchers.IO) {
+            val response = withContext(Dispatchers.IO) {
                 apiService.resendVerificationEmail()
             }
+            Result.success(response)
         } catch (e: Exception) {
             Log.e("AuthRepository", "Error al reenviar correo de verificación", e)
-            null
+            Result.failure(e)
         }
     }
 }

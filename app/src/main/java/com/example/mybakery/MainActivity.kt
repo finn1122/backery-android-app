@@ -4,64 +4,23 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import com.example.mybakery.ui.theme.MyBakeryTheme
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.ui.platform.LocalContext
 import com.example.mybakery.repository.AuthRepository
-import com.example.mybakery.ui.screens.components.login.LoginScreen
-import com.example.mybakery.ui.screens.components.login.RegisterScreen
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import com.example.mybakery.ui.navigation.Screen
-import com.example.mybakery.ui.theme.MyBakeryTheme
-
+import com.example.mybakery.ui.components.AppContent
 
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Instanciar AuthRepository
+        val authRepository = AuthRepository()
+
         setContent {
             MyBakeryTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    MyBakeryApp(authRepository = AuthRepository(), innerPadding = innerPadding)
-                }
+                AppContent(authRepository = authRepository)
             }
-        }
-    }
-}
-
-@Composable
-fun MyBakeryApp(authRepository: AuthRepository, innerPadding: PaddingValues) {
-    val navController = rememberNavController()
-
-    NavHost(navController = navController, startDestination = Screen.Login.name, modifier = Modifier.padding(innerPadding)) {
-        composable(Screen.Login.name) {
-            val context = LocalContext.current
-            LoginScreen(
-                authRepository = authRepository,
-                onLoginSuccess = { loginResponse ->
-                    // Manejo del éxito del login
-                    println("Login successful! Token: ${loginResponse.token}")
-                },
-                onNavigateToRegister = {
-                    navController.navigate(Screen.Register.name)
-                }
-            )
-        }
-        composable(Screen.Register.name) {
-            RegisterScreen(
-                authRepository = authRepository,
-                onRegisterSuccess = {
-                    navController.popBackStack()
-                }
-            )
         }
     }
 }
