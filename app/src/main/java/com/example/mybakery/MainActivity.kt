@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.example.mybakery.ui.theme.MyBakeryTheme
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.ui.platform.LocalContext
 import com.example.mybakery.repository.AuthRepository
 import com.example.mybakery.ui.screens.components.login.LoginScreen
 import com.example.mybakery.ui.screens.components.login.RegisterScreen
@@ -42,6 +43,7 @@ fun MyBakeryApp(authRepository: AuthRepository, innerPadding: PaddingValues) {
 
     NavHost(navController = navController, startDestination = Screen.Login.name, modifier = Modifier.padding(innerPadding)) {
         composable(Screen.Login.name) {
+            val context = LocalContext.current
             LoginScreen(
                 authRepository = authRepository,
                 onLoginSuccess = { loginResponse ->

@@ -11,14 +11,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.mybakery.data.model.LoginResponse
 import com.example.mybakery.repository.AuthRepository
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Composable
-fun LoginScreen(authRepository: AuthRepository, onLoginSuccess: (LoginResponse) -> Unit, onNavigateToRegister: () -> Unit) {
+fun LoginScreen(
+    authRepository: AuthRepository,
+    onLoginSuccess: (LoginResponse) -> Unit,
+    onNavigateToRegister: () -> Unit
+) {
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
@@ -37,20 +42,34 @@ fun LoginScreen(authRepository: AuthRepository, onLoginSuccess: (LoginResponse) 
 
                 isLoading = true
                 errorMessage = ""
-                CoroutineScope(Dispatchers.IO).launch {
+
+                scope.launch(Dispatchers.IO) {
                     try {
                         val response = authRepository.login(credentials.email, credentials.password)
-                        onLoginSuccess(response)
-                    } catch (e: Exception) {
-                        errorMessage = when {
-                            e.message?.contains("Invalid credentials") == true -> "Credenciales inválidas."
-                            e.message?.contains("Email not verified") == true -> "El correo no está verificado."
-                            e.message?.contains("User account is inactive") == true -> "La cuenta de usuario está inactiva."
-                            else -> "Error inesperado: ${e.message}"
+
+                        if (response != null) {
+                            withContext(Dispatchers.Main) {
+                                onLoginSuccess(response)
+                            }
+                        } else {
+                            withContext(Dispatchers.Main) {
+                                errorMessage = "Error inesperado al iniciar sesión."
+                            }
                         }
-                        Log.e("LoginScreen", "Error en el inicio de sesión: ${e.message}")
+                    } catch (e: Exception) {
+                        withContext(Dispatchers.Main) {
+                            errorMessage = when {
+                                e.message?.contains("Invalid credentials") == true -> "Credenciales inválidas."
+                                e.message?.contains("Email not verified") == true -> "El correo no está verificado."
+                                e.message?.contains("User account is inactive") == true -> "La cuenta de usuario está inactiva."
+                                else -> "Error inesperado: ${e.message}"
+                            }
+                            Log.e("LoginScreen", "Error en el inicio de sesión: ${e.message}")
+                        }
                     } finally {
-                        isLoading = false
+                        withContext(Dispatchers.Main) {
+                            isLoading = false
+                        }
                     }
                 }
             },

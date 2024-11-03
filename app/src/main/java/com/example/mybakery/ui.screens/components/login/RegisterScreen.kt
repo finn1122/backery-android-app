@@ -1,23 +1,24 @@
 package com.example.mybakery.ui.screens.components.login
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
+import android.util.Log
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.example.mybakery.data.model.RegisterCredentials
 import com.example.mybakery.repository.AuthRepository
-import com.example.mybakery.ui.theme.MyBakeryTheme
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-data class RegisterCredentials(val name: String, val email: String, val password: String, val confirmPassword: String)
+private const val TAG = "RegisterScreen"
 
 @Composable
 fun RegisterScreen(authRepository: AuthRepository, onRegisterSuccess: () -> Unit) {
@@ -27,6 +28,7 @@ fun RegisterScreen(authRepository: AuthRepository, onRegisterSuccess: () -> Unit
     var confirmPassword by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
@@ -81,19 +83,41 @@ fun RegisterScreen(authRepository: AuthRepository, onRegisterSuccess: () -> Unit
             onClick = {
                 isLoading = true
                 errorMessage = ""
-                CoroutineScope(Dispatchers.IO).launch {
+                scope.launch(Dispatchers.IO) {
                     try {
+                        Log.d(TAG, "Iniciando registro con nombre: $name, email: $email")
                         if (password != confirmPassword) {
                             throw Exception("Las contraseñas no coinciden")
                         }
                         val credentials = RegisterCredentials(name, email, password, confirmPassword)
+
                         // Lógica de registro en el repositorio de autenticación (authRepository).
-                        // authRepository.register(credentials)
-                        onRegisterSuccess()
+                        val response = authRepository.register(
+                            credentials.name,
+                            credentials.email,
+                            credentials.password,
+                            credentials.password_confirmation
+                        )
+                        if (response != null) {
+                            withContext(Dispatchers.Main) {
+                                Log.d(TAG, "Registro exitoso")
+                                onRegisterSuccess()
+                            }
+                        } else {
+                            withContext(Dispatchers.Main) {
+                                Log.e(TAG, "Error inesperado en el registro: Respuesta nula")
+                                errorMessage = "Error inesperado en el registro."
+                            }
+                        }
                     } catch (e: Exception) {
-                        errorMessage = e.message ?: "Error inesperado"
+                        withContext(Dispatchers.Main) {
+                            Log.e(TAG, "Error durante el registro", e)
+                            errorMessage = e.message ?: "Error inesperado"
+                        }
                     } finally {
-                        isLoading = false
+                        withContext(Dispatchers.Main) {
+                            isLoading = false
+                        }
                     }
                 }
             },
