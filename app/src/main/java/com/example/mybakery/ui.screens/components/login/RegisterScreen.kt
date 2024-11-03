@@ -15,7 +15,7 @@ import com.example.mybakery.repository.AuthRepository
 @Composable
 fun RegisterScreen(
     authRepository: AuthRepository,
-    onRegisterSuccess: () -> Unit
+    onNavigateToLogin: () -> Unit
 ) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -36,90 +36,11 @@ fun RegisterScreen(
     ) {
         Text(text = "Register", style = MaterialTheme.typography.bodyLarge)
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = name,
-            onValueChange = { name = it },
-            label = { Text("Name") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Password") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = passwordConfirmation,
-            onValueChange = { passwordConfirmation = it },
-            label = { Text("Confirm Password") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = {
-                isLoading = true
-                errorMessage = ""
-                successMessage = ""
-                scope.launch {
-                    try {
-                        val result = authRepository.register(name, email, password, passwordConfirmation)
-                        result.onSuccess {
-                            withContext(Dispatchers.Main) {
-                                successMessage = "Successfully registered. Please check your email for verification."
-                                isRegisterSuccess = true  // Actualiza el estado cuando el registro es exitoso
-                                onRegisterSuccess()
-                            }
-                        }.onFailure { e ->
-                            withContext(Dispatchers.Main) {
-                                errorMessage = e.message ?: "Registration failed"
-                            }
-                        }
-                    } catch (e: Exception) {
-                        withContext(Dispatchers.Main) {
-                            errorMessage = e.message ?: "Registration failed"
-                        }
-                    } finally {
-                        withContext(Dispatchers.Main) {
-                            isLoading = false
-                        }
-                    }
-                }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !isLoading
-        ) {
-            if (isLoading) {
-                CircularProgressIndicator(
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(24.dp)
-                )
-            } else {
-                Text("Register")
-            }
-        }
-
         if (isRegisterSuccess) {
+            // Mostrar mensaje de confirmación después de un registro exitoso
+            Text(text = "$name, tu registro fue correcto. Revisa tu email $email para confirmar tu registro.", style = MaterialTheme.typography.bodyLarge)
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(text = successMessage, color = MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
@@ -162,16 +83,99 @@ fun RegisterScreen(
                     Text("Resend Verification Email")
                 }
             }
+        } else {
+            // Mostrar formulario de registro
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Name") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Email") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Password") },
+                visualTransformation = PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = passwordConfirmation,
+                onValueChange = { passwordConfirmation = it },
+                label = { Text("Confirm Password") },
+                visualTransformation = PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = {
+                    isLoading = true
+                    errorMessage = ""
+                    successMessage = ""
+                    scope.launch {
+                        try {
+                            val result = authRepository.register(name, email, password, passwordConfirmation)
+                            result.onSuccess {
+                                withContext(Dispatchers.Main) {
+                                    successMessage = "Successfully registered. Please check your email for verification."
+                                    isRegisterSuccess = true  // Actualiza el estado cuando el registro es exitoso
+                                    // No navegar al login automáticamente
+                                }
+                            }.onFailure { e ->
+                                withContext(Dispatchers.Main) {
+                                    errorMessage = e.message ?: "Registration failed"
+                                }
+                            }
+                        } catch (e: Exception) {
+                            withContext(Dispatchers.Main) {
+                                errorMessage = e.message ?: "Registration failed"
+                            }
+                        } finally {
+                            withContext(Dispatchers.Main) {
+                                isLoading = false
+                            }
+                        }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isLoading
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                } else {
+                    Text("Register")
+                }
+            }
+
+            if (errorMessage.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
+            }
         }
 
-        if (errorMessage.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
-        }
+        Spacer(modifier = Modifier.height(16.dp))
 
-        if (successMessage.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(text = successMessage, color = MaterialTheme.colorScheme.primary)
+        TextButton(onClick = onNavigateToLogin) {
+            Text("¿Ya tienes una cuenta? Inicia sesión")
         }
     }
 }

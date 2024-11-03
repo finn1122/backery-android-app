@@ -1,7 +1,6 @@
 package com.example.mybakery.ui.components
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -29,8 +28,7 @@ fun AppContent(authRepository: AuthRepository) {
         composable("register") {
             RegisterScreen(
                 authRepository = authRepository,
-                onRegisterSuccess = {
-                    // Volver a la pantalla de inicio de sesión después del registro
+                onNavigateToLogin = {
                     navController.popBackStack()
                 }
             )
