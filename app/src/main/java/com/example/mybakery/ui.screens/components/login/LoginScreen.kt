@@ -1,11 +1,13 @@
 package com.example.mybakery.ui.screens.login
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
@@ -13,7 +15,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.example.mybakery.data.model.LoginResponse
 import com.example.mybakery.repository.AuthRepository
-import com.example.mybakery.utils.PreferencesHelper
 
 @Composable
 fun LoginScreen(
@@ -27,6 +28,7 @@ fun LoginScreen(
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -68,14 +70,19 @@ fun LoginScreen(
                             authRepository.login(email, password)
                         }
                         loginResult.onSuccess { loginResponse ->
+                            val userRole = loginResponse.user.roles.firstOrNull()
+                            if (userRole != null) {
+                                Toast.makeText(context, "Rol del usuario: $userRole", Toast.LENGTH_SHORT).show()
+                            }
+
                             onLoginSuccess(loginResponse)
 
-                            val userRole = loginResponse.user.roles.firstOrNull()
                             if (userRole == "admin") {
                                 val bakeryResult = withContext(Dispatchers.IO) {
                                     authRepository.verifyBakery()
                                 }
                                 bakeryResult.onSuccess {
+                                    Toast.makeText(context, "Admin ha iniciado sesión", Toast.LENGTH_SHORT).show()
                                     onAdminBakeryCheck()
                                 }.onFailure { e: Throwable ->
                                     errorMessage = e.message ?: "Error desconocido en la verificación de la panadería"
