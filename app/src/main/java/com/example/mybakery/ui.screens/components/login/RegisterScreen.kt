@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.example.mybakery.repository.AuthRepository
@@ -24,8 +25,21 @@ fun RegisterScreen(
     var isLoading by remember { mutableStateOf(false) }
     var successMessage by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
-    var isRegisterSuccess by remember { mutableStateOf(false) } // Nueva variable de estado
+    var isRegisterSuccess by remember { mutableStateOf(false) }
+    var canResendEmail by remember { mutableStateOf(false) }
+    var timer by remember { mutableStateOf(60) }
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(isRegisterSuccess) {
+        if (isRegisterSuccess) {
+            canResendEmail = false
+            while (timer > 0) {
+                delay(1000L)
+                timer--
+            }
+            canResendEmail = true
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -72,7 +86,7 @@ fun RegisterScreen(
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = !isLoading
+                enabled = canResendEmail && !isLoading
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(
@@ -80,7 +94,11 @@ fun RegisterScreen(
                         modifier = Modifier.size(24.dp)
                     )
                 } else {
-                    Text("Resend Verification Email")
+                    if (canResendEmail) {
+                        Text("Resend Verification Email")
+                    } else {
+                        Text("Puedes reenviar el email en $timer segundos")
+                    }
                 }
             }
         } else {
@@ -135,7 +153,7 @@ fun RegisterScreen(
                                 withContext(Dispatchers.Main) {
                                     successMessage = "Successfully registered. Please check your email for verification."
                                     isRegisterSuccess = true  // Actualiza el estado cuando el registro es exitoso
-                                    // No navegar al login automáticamente
+                                    timer = 60 // Reiniciar el temporizador
                                 }
                             }.onFailure { e ->
                                 withContext(Dispatchers.Main) {
