@@ -65,9 +65,9 @@ class AuthRepository(
         }
     }
 
-    suspend fun verifyBakery(token: String): Response<List<BakeryResponse>> {
+    suspend fun verifyBakery(token: String, userId: Int): Response<List<BakeryResponse>> {
         Log.d("AuthRepository", "Calling verifyBakery with token: $token")
-        return apiService.verifyBakery(token)
+        return apiService.verifyBakery(token, userId)
     }
 
     /*suspend fun logout() {

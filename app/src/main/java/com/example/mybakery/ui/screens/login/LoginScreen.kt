@@ -75,6 +75,7 @@ fun LoginScreen(
                         }
                         loginResult.onSuccess { loginResponse ->
                             val userRole = loginResponse.user.roles.firstOrNull()
+                            val userId = loginResponse.user.id
                             val token = loginResponse.token
 
                             // Guardar datos en las preferencias
@@ -94,7 +95,7 @@ fun LoginScreen(
                                 Log.d("LoginScreen", "Logging in as admin. Verifying bakery...")
 
                                 val bakeryResponse: Response<List<BakeryResponse>> = withContext(Dispatchers.IO) {
-                                    authRepository.verifyBakery("Bearer $token")
+                                    authRepository.verifyBakery("Bearer $token", userId)
                                 }
 
                                 Log.d("LoginScreen", "Bakery Response Code: ${bakeryResponse.code()}")
