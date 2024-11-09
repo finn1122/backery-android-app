@@ -3,25 +3,35 @@ package com.example.mybakery
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import com.example.mybakery.repository.AuthRepository
-import com.example.mybakery.ui.components.AppContent
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.ui.Modifier
+import com.example.mybakery.ui.login.LoginScreen
+import com.example.mybakery.viewmodel.LoginViewModel
 import com.example.mybakery.ui.theme.MyBakeryTheme
-import com.example.mybakery.utils.PreferencesHelper
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        val loginViewModel = LoginViewModel()
+
         // Instanciar PreferencesHelper
-        val preferencesHelper = PreferencesHelper(this)
+        //val preferencesHelper = PreferencesHelper(this)
 
         // Instanciar AuthRepository
-        val authRepository = AuthRepository(preferencesHelper)
+        //val authRepository = AuthRepository(preferencesHelper)
 
         setContent {
             MyBakeryTheme {
-                AppContent(authRepository = authRepository)
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ){
+                    LoginScreen(loginViewModel)
+                }
             }
         }
     }

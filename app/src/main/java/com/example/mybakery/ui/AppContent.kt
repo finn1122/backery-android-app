@@ -1,18 +1,6 @@
 package com.example.mybakery.ui.components
 
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import com.example.mybakery.repository.AuthRepository
-import com.example.mybakery.ui.screens.login.LoginScreen
-import com.example.mybakery.ui.screens.bakery.BakeryDashboardScreen
-import com.example.mybakery.ui.screens.bakery.SetupBakeryScreen
-import com.example.mybakery.ui.screens.login.RegisterScreen
-import com.example.mybakery.utils.PreferencesHelper
-
-@Composable
+/*@Composable
 fun AppContent(authRepository: AuthRepository) {
     val navController = rememberNavController()
     val context = LocalContext.current
@@ -62,3 +50,4 @@ fun AppContent(authRepository: AuthRepository) {
         }
     }
 }
+*/
