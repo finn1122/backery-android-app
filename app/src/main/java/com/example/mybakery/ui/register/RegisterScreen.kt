@@ -91,52 +91,71 @@ fun Register(modifier: Modifier, viewModel: RegisterViewModel) {
 }
 
 @Composable
-fun nameField(name: String, onTextFiledChange: (String) -> Unit) {
+fun nameField(name: String, onTextFieldChange: (String) -> Unit) {
     OutlinedTextField(
         value = name,
-        onValueChange = {onTextFiledChange(it) },
+        onValueChange = onTextFieldChange,
         label = { Text("Name") },
-        modifier = Modifier.fillMaxWidth()
+        singleLine = true,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
     )
 }
 
+
 @Composable
-fun emailField(email: String, onTextFiledChange: (String) -> Unit) {
+fun emailField(email: String, onTextFieldChange: (String) -> Unit) {
     OutlinedTextField(
         value = email,
-        onValueChange = {onTextFiledChange(it) },
+        onValueChange = onTextFieldChange,
         label = { Text("Email") },
-        modifier = Modifier.fillMaxWidth()
-
+        singleLine = true,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
     )
 }
+
+
 @Composable
-fun passwordField(password: String, onTextFiledChange: (String) -> Unit) {
+fun passwordField(password: String, onTextFieldChange: (String) -> Unit) {
     OutlinedTextField(
         value = password,
-        onValueChange = { onTextFiledChange(it) },
+        onValueChange = onTextFieldChange,
         label = { Text("Password") },
         visualTransformation = PasswordVisualTransformation(),
-        modifier = Modifier.fillMaxWidth()
+        singleLine = true,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
     )
 }
+
+
 @Composable
-fun passwordConfirmationField(passwordConfirmation: String, onTextFiledChange: (String) -> Unit) {
+fun passwordConfirmationField(passwordConfirmation: String, onTextFieldChange: (String) -> Unit) {
     OutlinedTextField(
         value = passwordConfirmation,
-        onValueChange = { onTextFiledChange(it) },
+        onValueChange = onTextFieldChange,
         label = { Text("Confirm Password") },
         visualTransformation = PasswordVisualTransformation(),
-        modifier = Modifier.fillMaxWidth()
+        singleLine = true,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
     )
 }
+
 @Composable
-fun registerButton(modifier: Modifier = Modifier, registerEnable: Boolean, onRegisterSelected: () -> Unit) {
+fun registerButton(modifier: Modifier, registerEnable: Boolean, onRegisterSelected: () -> Unit) {
     Button(
-        onClick = { onRegisterSelected() },
+        onClick = onRegisterSelected,
         enabled = registerEnable,
-        modifier = modifier,
-        ) {
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp)
+    ) {
         Text("Register")
     }
 }
@@ -146,33 +165,41 @@ fun ShowRegisterSuccessMessage(name: String, email: String) {
     Text(
         text = "Registro exitoso, $name!",
         color = Color.Green,
-        style = MaterialTheme.typography.titleMedium
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.padding(vertical = 8.dp)
     )
     Text(
         text = "Por favor, revisa tu correo electrónico ($email) para verificar tu cuenta.",
-        color = Color.Green
+        color = Color.Green,
+        modifier = Modifier.padding(vertical = 8.dp)
     )
 }
 
 @Composable
 fun ShowResendEmailMessage(timerValue: Int?, canSendEmail: Boolean, viewModel: RegisterViewModel) {
-    Spacer(modifier = Modifier.height(8.dp))
+    Spacer(modifier = Modifier.height(16.dp))
     Text(
         text = "Si no recibiste el correo, haz clic en el botón de abajo para reenviar el correo de verificación.",
-        color = Color.Gray
+        color = Color.Gray,
+        style = MaterialTheme.typography.bodySmall,
+        modifier = Modifier.padding(vertical = 8.dp)
     )
 
     if (timerValue != null && !canSendEmail) {
         Text(
             text = "Puedes reenviar el correo en: ${timerValue} segundos",
-            color = Color.Gray
+            color = Color.Gray,
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(vertical = 4.dp)
         )
     }
 
     Button(
         onClick = { viewModel.resendVerificationEmail() },
         enabled = canSendEmail,
-        modifier = Modifier.padding(top = 16.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp)
     ) {
         Text(text = "Reenviar correo de verificación")
     }
