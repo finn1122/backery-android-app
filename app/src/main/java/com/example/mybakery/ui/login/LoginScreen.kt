@@ -11,12 +11,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.mybakery.R
+import com.example.mybakery.data.model.response.BakeryResponse
 import com.example.mybakery.viewmodel.LoginViewModel
 import kotlinx.coroutines.launch
 
@@ -51,8 +53,11 @@ fun Login(modifier: Modifier, viewModel: LoginViewModel, navController: NavContr
     val password: String by viewModel.password.observeAsState(initial = "")
     val loginEnable: Boolean by viewModel.loginEnable.observeAsState(initial = false)
     val isLoading: Boolean by viewModel.isLoading.observeAsState(initial = false)
-    val loginResult: Result<String>? by viewModel.loginResult.observeAsState()
+    val loginResult : Result<String>? by viewModel.loginResult.observeAsState()
+    val isLoginSuccess : Boolean by viewModel.isLoginSuccess.observeAsState(initial = false)
+    val bakeryResult: Result<List<BakeryResponse>?>? by viewModel.bakeryResult.observeAsState()
     val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     if (isLoading) {
         Box(Modifier.fillMaxSize()) {
@@ -82,18 +87,20 @@ fun Login(modifier: Modifier, viewModel: LoginViewModel, navController: NavContr
                     modifier = Modifier.align(Alignment.CenterHorizontally),
                     loginEnable = loginEnable
                 ) {
-                    coroutineScope.launch { viewModel.onLoginSelected() }
+                    coroutineScope.launch { viewModel.onLoginSelected(context) }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 NotRegisterYet(modifier = Modifier.align(Alignment.CenterHorizontally)) {
                     navController.navigate("register")
                 }
 
+                if(isLoginSuccess){
+                    bakeryResult
+                }
+
                 // Mostrar mensajes basados en el resultado del login
                 loginResult?.let {
-                    if (it.isSuccess) {
-                        Text("Login successful: ${it.getOrNull()}", color = Color.Green)
-                    } else if (it.isFailure) {
+                    if (it.isFailure) {
                         Text("Login failed: ${it.exceptionOrNull()?.message}", color = Color.Red)
                     }
                 }

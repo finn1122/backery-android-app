@@ -26,5 +26,5 @@ interface ApiService {
     suspend fun verifyBakery(
         @Header("Authorization") token: String,
         @Path("userId") userId: Int
-    ): Response<List<BakeryResponse>>
+    ): Response<List<BakeryResponse>> // Cambiar el tipo de respuesta a List<BakeryResponse>
 }

@@ -6,5 +6,5 @@ data class BakeryResponse(
     val opening_hours: String,
     val profile_picture: String?,
     val active: Boolean,
-    val user_id: Int
+    val id: Int
 )
