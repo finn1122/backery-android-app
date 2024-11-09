@@ -2,6 +2,10 @@ package com.example.mybakery.data.network
 
 import android.util.Log
 import com.example.mybakery.data.model.*
+import com.example.mybakery.data.model.response.BakeryResponse
+import com.example.mybakery.data.model.response.LoginResponse
+import com.example.mybakery.data.model.response.RegisterResponse
+import com.example.mybakery.data.model.response.VerificationEmailResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET

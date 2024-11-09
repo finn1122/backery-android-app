@@ -1,4 +1,4 @@
-package com.example.mybakery.data.model
+package com.example.mybakery.data.model.response
 
 data class BakeryResponse(
     val name: String,

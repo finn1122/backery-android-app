@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import com.example.mybakery.data.network.RetrofitClient
 import androidx.lifecycle.viewModelScope
 import com.example.mybakery.data.model.RegisterCredentials
+import com.example.mybakery.data.model.response.RegisterResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -32,6 +33,9 @@ class RegisterViewModel : ViewModel() {
 
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading : LiveData<Boolean> = _isLoading
+
+    private val _isRegisterSuccess = MutableLiveData<Boolean>()
+    val isRegisterSuccess : LiveData<Boolean> = _isRegisterSuccess
 
     private val _canSendEmail = MutableLiveData<Boolean>()
     val canSendEmail : LiveData<Boolean> = _canSendEmail
@@ -72,16 +76,17 @@ class RegisterViewModel : ViewModel() {
             )
 
             try {
-                val response = withContext(Dispatchers.IO) { apiService.register(registerCredentials) }
-                _registerResult.value = Result.success("Register successful: ${response.token}")
+                val response: RegisterResponse = withContext(Dispatchers.IO) { apiService.register(registerCredentials) }
+                val successMessage = response.token // Asegúrate de utilizar `token` como mensaje de éxito
+                _registerResult.value = Result.success(successMessage)
+                _isRegisterSuccess.value = true
             } catch (e: Exception) {
                 _registerResult.value = Result.failure(e)
+                _isRegisterSuccess.value = false
             } finally {
                 _isLoading.value = false
             }
         }
-
-
     }
 }
 

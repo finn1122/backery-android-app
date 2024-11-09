@@ -6,6 +6,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -36,6 +37,7 @@ fun Register(modifier: Modifier, viewModel: RegisterViewModel) {
     val registerEnable : Boolean by viewModel.registerEnable.observeAsState(initial = false)
     val isLoading : Boolean by viewModel.isLoading.observeAsState(initial = false)
     val registerResult : Result<String>? by viewModel.registerResult.observeAsState()
+    val isRegisterSuccess : Boolean by viewModel.isRegisterSuccess.observeAsState(initial = false)
     val canSendEmail : Boolean by viewModel.canSendEmail.observeAsState(initial = false)
     //var timer by remember { mutableStateOf(60) }
     val coroutineScope = rememberCoroutineScope()
@@ -50,19 +52,31 @@ fun Register(modifier: Modifier, viewModel: RegisterViewModel) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ){
-            nameField(name, {viewModel.onRegisterChanged(it, email, password, passwordConfirmation)})
-            Spacer(modifier = Modifier.height(4.dp))
-            emailField(email, {viewModel.onRegisterChanged(name, it, password, passwordConfirmation)})
-            Spacer(modifier = Modifier.height(4.dp))
-            passwordField(password, {viewModel.onRegisterChanged(name, email, it, passwordConfirmation)})
-            Spacer(modifier = Modifier.height(8.dp))
-            passwordConfirmationField(passwordConfirmation, {viewModel.onRegisterChanged(name, email, password, it)})
-            Spacer(modifier = Modifier.height(8.dp))
-            registerButton(modifier = Modifier.align(Alignment.CenterHorizontally), registerEnable){
-                coroutineScope.launch {
-                    viewModel.onRegisterSelected()
+            if (isRegisterSuccess) {
+                Text("Successfully registered. Please check your email for verification.", color = Color.Green)
+            } else {
+                nameField(name, { viewModel.onRegisterChanged(it, email, password, passwordConfirmation) })
+                Spacer(modifier = Modifier.height(4.dp))
+                emailField(email, { viewModel.onRegisterChanged(name, it, password, passwordConfirmation) })
+                Spacer(modifier = Modifier.height(4.dp))
+                passwordField(password, { viewModel.onRegisterChanged(name, email, it, passwordConfirmation) })
+                Spacer(modifier = Modifier.height(8.dp))
+                passwordConfirmationField(
+                    passwordConfirmation,
+                    { viewModel.onRegisterChanged(name, email, password, it) })
+                Spacer(modifier = Modifier.height(8.dp))
+                registerButton(modifier = Modifier.align(Alignment.CenterHorizontally), registerEnable) {
+                    coroutineScope.launch {
+                        viewModel.onRegisterSelected()
+                    }
                 }
             }
+        }
+    }
+    // Mostrar mensajes basados en el resultado del login
+    registerResult?.let {
+        if (it.isFailure) {
+            Text("Register failed: ${it.exceptionOrNull()?.message}", color = Color.Red)
         }
     }
 }
