@@ -55,6 +55,10 @@ class RegisterViewModel : ViewModel() {
     private val _resendEmailResult = MutableLiveData<Result<String>>()
     val resendEmailResult: LiveData<Result<String>> = _resendEmailResult
 
+    private val _timerValue = MutableLiveData<Int>()
+    val timerValue: LiveData<Int> = _timerValue
+
+
     private fun isValidName(name: String): Boolean = name.length >= 3
 
     private fun isValidPassword(password: String): Boolean = password.length >= 6
@@ -65,7 +69,11 @@ class RegisterViewModel : ViewModel() {
 
     private fun startEmailResendTimer() {
         viewModelScope.launch {
-            delay(60000) // Esperar 60 segundos
+            _canSendEmail.value = false
+            for (time in 60 downTo 1) {
+                _timerValue.value = time
+                delay(1000) // Esperar 1 segundo
+            }
             _canSendEmail.value = true
         }
     }

@@ -22,7 +22,6 @@ fun RegisterScreen(viewModel: RegisterViewModel, navController: NavController) {
     ){
         Register(Modifier.align(Alignment.Center), viewModel)
     }
-
 }
 
 @Composable
@@ -38,6 +37,7 @@ fun Register(modifier: Modifier, viewModel: RegisterViewModel) {
     val canSendEmail : Boolean by viewModel.canSendEmail.observeAsState(initial = false)
     val isResendEmailSuccess : Boolean by viewModel.isResendEmailSuccess.observeAsState(initial = false)
     val resendEmailResult : Result<String>? by viewModel.resendEmailResult.observeAsState()
+    val timerValue : Int? by viewModel.timerValue.observeAsState()
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -53,7 +53,7 @@ fun Register(modifier: Modifier, viewModel: RegisterViewModel) {
         ){
             if (isRegisterSuccess) {
                 ShowRegisterSuccessMessage(name, email)
-                ShowResendEmailMessage(canSendEmail, viewModel)
+                ShowResendEmailMessage(timerValue, canSendEmail, viewModel)
 
                 // Mostrar mensajes basados en el resultado del reenvío del correo de verificación
                 resendEmailResult?.let {
@@ -155,20 +155,25 @@ fun ShowRegisterSuccessMessage(name: String, email: String) {
 }
 
 @Composable
-fun ShowResendEmailMessage(canSendEmail: Boolean, viewModel: RegisterViewModel) {
+fun ShowResendEmailMessage(timerValue: Int?, canSendEmail: Boolean, viewModel: RegisterViewModel) {
     Spacer(modifier = Modifier.height(8.dp))
     Text(
         text = "Si no recibiste el correo, haz clic en el botón de abajo para reenviar el correo de verificación.",
         color = Color.Gray
     )
 
-    if (canSendEmail) {
-        Button(
-            onClick = { viewModel.resendVerificationEmail() },
-            enabled = canSendEmail,
-            modifier = Modifier.padding(top = 16.dp)
-        ) {
-            Text(text = "Reenviar correo de verificación")
-        }
+    if (timerValue != null && !canSendEmail) {
+        Text(
+            text = "Puedes reenviar el correo en: ${timerValue} segundos",
+            color = Color.Gray
+        )
+    }
+
+    Button(
+        onClick = { viewModel.resendVerificationEmail() },
+        enabled = canSendEmail,
+        modifier = Modifier.padding(top = 16.dp)
+    ) {
+        Text(text = "Reenviar correo de verificación")
     }
 }
