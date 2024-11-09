@@ -8,6 +8,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
@@ -53,14 +54,24 @@ fun Register(modifier: Modifier, viewModel: RegisterViewModel) {
         ){
             if (isRegisterSuccess) {
                 ShowRegisterSuccessMessage(name, email)
+                Spacer(modifier = Modifier.height(16.dp))
                 ShowResendEmailMessage(timerValue, canSendEmail, viewModel)
-
-                // Mostrar mensajes basados en el resultado del reenvío del correo de verificación
                 resendEmailResult?.let {
+                    Spacer(modifier = Modifier.height(16.dp))
                     if (it.isSuccess) {
-                        Text("Correo reenviado correctamente: ${it.getOrNull()}", color = Color.Green)
+                        Text(
+                            text = "Correo reenviado correctamente: ${it.getOrNull()}",
+                            color = Color.Green,
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center
+                        )
                     } else if (it.isFailure) {
-                        Text("Fallo al reenviar correo: ${it.exceptionOrNull()?.message}", color = Color.Red)
+                        Text(
+                            text = "Fallo al reenviar correo: ${it.exceptionOrNull()?.message}",
+                            color = Color.Red,
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center
+                        )
                     }
                 }
             } else {
@@ -162,45 +173,55 @@ fun registerButton(modifier: Modifier, registerEnable: Boolean, onRegisterSelect
 
 @Composable
 fun ShowRegisterSuccessMessage(name: String, email: String) {
-    Text(
-        text = "Registro exitoso, $name!",
-        color = Color.Green,
-        style = MaterialTheme.typography.titleMedium,
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.padding(vertical = 8.dp)
-    )
-    Text(
-        text = "Por favor, revisa tu correo electrónico ($email) para verificar tu cuenta.",
-        color = Color.Green,
-        modifier = Modifier.padding(vertical = 8.dp)
-    )
+    ) {
+        Text(
+            text = "¡Registro exitoso, $name!",
+            color = MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Por favor, revisa tu correo electrónico ($email) para verificar tu cuenta.",
+            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.bodySmall,
+            textAlign = TextAlign.Center
+        )
+    }
 }
 
 @Composable
 fun ShowResendEmailMessage(timerValue: Int?, canSendEmail: Boolean, viewModel: RegisterViewModel) {
-    Spacer(modifier = Modifier.height(16.dp))
-    Text(
-        text = "Si no recibiste el correo, haz clic en el botón de abajo para reenviar el correo de verificación.",
-        color = Color.Gray,
-        style = MaterialTheme.typography.bodySmall,
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.padding(vertical = 8.dp)
-    )
-
-    if (timerValue != null && !canSendEmail) {
-        Text(
-            text = "Puedes reenviar el correo en: ${timerValue} segundos",
-            color = Color.Gray,
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(vertical = 4.dp)
-        )
-    }
-
-    Button(
-        onClick = { viewModel.resendVerificationEmail() },
-        enabled = canSendEmail,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 16.dp)
     ) {
-        Text(text = "Reenviar correo de verificación")
+        Text(
+            text = "¿No recibiste el correo?.",
+            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.bodySmall,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
+
+        if (timerValue != null && !canSendEmail) {
+            Text(
+                text = "Puedes reenviar el correo en: ${timerValue} segundos",
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(vertical = 4.dp),
+                textAlign = TextAlign.Center
+            )
+        }
+
+        Button(
+            onClick = { viewModel.resendVerificationEmail() },
+            enabled = canSendEmail,
+            modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)
+        ) {
+            Text(text = "Reenviar correo de verificación")
+        }
     }
 }
