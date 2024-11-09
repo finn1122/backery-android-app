@@ -58,6 +58,11 @@ fun Register(modifier: Modifier, viewModel: RegisterViewModel) {
             Spacer(modifier = Modifier.height(8.dp))
             passwordConfirmationField(passwordConfirmation, {viewModel.onRegisterChanged(name, email, password, it)})
             Spacer(modifier = Modifier.height(8.dp))
+            registerButton(modifier = Modifier.align(Alignment.CenterHorizontally), registerEnable){
+                coroutineScope.launch {
+                    viewModel.onRegisterSelected()
+                }
+            }
         }
     }
 }
@@ -103,11 +108,11 @@ fun passwordConfirmationField(passwordConfirmation: String, onTextFiledChange: (
     )
 }
 @Composable
-fun registerButton(registerEnable: Boolean, onRegisterSelected: () -> Unit) {
+fun registerButton(modifier: Modifier = Modifier, registerEnable: Boolean, onRegisterSelected: () -> Unit) {
     Button(
         onClick = { onRegisterSelected() },
         enabled = registerEnable,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier,
         ) {
         Text("Register")
     }

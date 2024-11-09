@@ -3,9 +3,15 @@ package com.example.mybakery.viewmodel
 import android.util.Patterns
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import com.example.mybakery.data.network.RetrofitClient
+import androidx.lifecycle.viewModelScope
+import com.example.mybakery.data.model.RegisterCredentials
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-class RegisterViewModel {
+class RegisterViewModel : ViewModel() {
 
     private val apiService = RetrofitClient.apiService
 
@@ -53,6 +59,29 @@ class RegisterViewModel {
         _password.value = password
         _passwordConfirmation.value = passwordConfirmation
         _registerEnable.value = isValidName(name) && isValidEmail(email) && isValidPassword(password) && passwordsMatch(password, passwordConfirmation)
+    }
+
+    fun onRegisterSelected(){
+        _isLoading.value = true
+        viewModelScope.launch {
+            val registerCredentials = RegisterCredentials(
+                name = _name.value ?: "",
+                email = _email.value ?: "",
+                password = _password.value ?: "",
+                password_confirmation = _passwordConfirmation.value ?: ""
+            )
+
+            try {
+                val response = withContext(Dispatchers.IO) { apiService.register(registerCredentials) }
+                _registerResult.value = Result.success("Register successful: ${response.token}")
+            } catch (e: Exception) {
+                _registerResult.value = Result.failure(e)
+            } finally {
+                _isLoading.value = false
+            }
+        }
+
+
     }
 }
 
