@@ -12,7 +12,7 @@ import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import retrofit2.Response
 
-private const val TAG = "AuthRepository"
+/*private const val TAG = "AuthRepository"
 
 class AuthRepository(
     private val preferencesHelper: PreferencesHelper
@@ -71,7 +71,8 @@ class AuthRepository(
         return apiService.verifyBakery(token, userId)
     }
 
-    /*suspend fun logout() {
+    suspend fun logout() {
         preferencesHelper.clear()
-    }*/
+    }
 }
+*/

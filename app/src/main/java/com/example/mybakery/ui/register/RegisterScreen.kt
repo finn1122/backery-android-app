@@ -10,10 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import com.example.mybakery.repository.AuthRepository
-import com.example.mybakery.ui.login.*
 import com.example.mybakery.viewmodel.RegisterViewModel
 
 @Composable
@@ -39,7 +36,9 @@ fun Register(modifier: Modifier, viewModel: RegisterViewModel) {
     val registerResult : Result<String>? by viewModel.registerResult.observeAsState()
     val isRegisterSuccess : Boolean by viewModel.isRegisterSuccess.observeAsState(initial = false)
     val canSendEmail : Boolean by viewModel.canSendEmail.observeAsState(initial = false)
-    //var timer by remember { mutableStateOf(60) }
+    val isResendEmailSuccess : Boolean by viewModel.isResendEmailSuccess.observeAsState(initial = false)
+    val resendEmailResult : Result<String>? by viewModel.resendEmailResult.observeAsState()
+
     val coroutineScope = rememberCoroutineScope()
 
     if(isLoading){
@@ -53,7 +52,26 @@ fun Register(modifier: Modifier, viewModel: RegisterViewModel) {
             horizontalAlignment = Alignment.CenterHorizontally
         ){
             if (isRegisterSuccess) {
-                Text("Successfully registered. Please check your email for verification.", color = Color.Green)
+                ShowRegisterSuccessMessage(name, email)
+                ShowResendEmailMessage(canSendEmail, viewModel)
+
+                if (canSendEmail) {
+                    Button(
+                        onClick = { viewModel.resendVerificationEmail() },
+                        enabled = canSendEmail,
+                        modifier = Modifier.padding(top = 16.dp)
+                    ) {
+                        Text(text = "Reenviar correo de verificación")
+                    }
+                }
+                // Mostrar mensajes basados en el resultado del reenvío del correo de verificación
+                resendEmailResult?.let {
+                    if (it.isSuccess) {
+                        Text("Correo reenviado correctamente: ${it.getOrNull()}", color = Color.Green)
+                    } else if (it.isFailure) {
+                        Text("Fallo al reenviar correo: ${it.exceptionOrNull()?.message}", color = Color.Red)
+                    }
+                }
             } else {
                 nameField(name, { viewModel.onRegisterChanged(it, email, password, passwordConfirmation) })
                 Spacer(modifier = Modifier.height(4.dp))
@@ -129,6 +147,38 @@ fun registerButton(modifier: Modifier = Modifier, registerEnable: Boolean, onReg
         modifier = modifier,
         ) {
         Text("Register")
+    }
+}
+
+@Composable
+fun ShowRegisterSuccessMessage(name: String, email: String) {
+    Text(
+        text = "Registro exitoso, $name!",
+        color = Color.Green,
+        style = MaterialTheme.typography.titleMedium
+    )
+    Text(
+        text = "Por favor, revisa tu correo electrónico ($email) para verificar tu cuenta.",
+        color = Color.Green
+    )
+}
+
+@Composable
+fun ShowResendEmailMessage(canSendEmail: Boolean, viewModel: RegisterViewModel) {
+    Spacer(modifier = Modifier.height(8.dp))
+    Text(
+        text = "Si no recibiste el correo, haz clic en el botón de abajo para reenviar el correo de verificación.",
+        color = Color.Gray
+    )
+
+    if (canSendEmail) {
+        Button(
+            onClick = { viewModel.resendVerificationEmail() },
+            enabled = canSendEmail,
+            modifier = Modifier.padding(top = 16.dp)
+        ) {
+            Text(text = "Reenviar correo de verificación")
+        }
     }
 }
 

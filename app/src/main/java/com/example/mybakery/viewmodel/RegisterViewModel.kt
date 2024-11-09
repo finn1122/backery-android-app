@@ -7,8 +7,12 @@ import androidx.lifecycle.ViewModel
 import com.example.mybakery.data.network.RetrofitClient
 import androidx.lifecycle.viewModelScope
 import com.example.mybakery.data.model.RegisterCredentials
+import com.example.mybakery.data.model.response.EmailResendResponse
 import com.example.mybakery.data.model.response.RegisterResponse
+import com.example.mybakery.data.model.response.VerificationEmailCredentials
+import com.example.mybakery.data.model.response.VerificationEmailResponse
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -37,11 +41,19 @@ class RegisterViewModel : ViewModel() {
     private val _isRegisterSuccess = MutableLiveData<Boolean>()
     val isRegisterSuccess : LiveData<Boolean> = _isRegisterSuccess
 
+    private val _isResendEmailSuccess = MutableLiveData<Boolean>()
+    val isResendEmailSuccess : LiveData<Boolean> = _isResendEmailSuccess
+
     private val _canSendEmail = MutableLiveData<Boolean>()
     val canSendEmail : LiveData<Boolean> = _canSendEmail
 
+    private var resendEmailAttempts = 0
+
     private val _registerResult = MutableLiveData<Result<String>>()
     val registerResult: LiveData<Result<String>> = _registerResult
+
+    private val _resendEmailResult = MutableLiveData<Result<String>>()
+    val resendEmailResult: LiveData<Result<String>> = _resendEmailResult
 
     private fun isValidName(name: String): Boolean = name.length >= 3
 
@@ -51,6 +63,40 @@ class RegisterViewModel : ViewModel() {
 
     private fun passwordsMatch(password: String, passwordConfirmation: String): Boolean = password == passwordConfirmation
 
+    private fun startEmailResendTimer() {
+        viewModelScope.launch {
+            delay(60000) // Esperar 60 segundos
+            _canSendEmail.value = true
+        }
+    }
+
+    fun resendVerificationEmail() {
+        if (resendEmailAttempts < 3) { // Verifica si el número de intentos es menor a 3
+            viewModelScope.launch {
+                val emailCredentials = VerificationEmailCredentials(
+                    email = _email.value ?: return@launch // Retorna temprano si el email es nulo
+                )
+                try {
+                    _isLoading.value = true
+                    val response: VerificationEmailResponse = withContext(Dispatchers.IO) {
+                        apiService.resendVerificationEmail(emailCredentials)
+                    }
+                    val successMessage = response.message
+                    _resendEmailResult.value = Result.success(successMessage)
+                    _isResendEmailSuccess.value = true
+                    resendEmailAttempts++ // Incrementa el contador de intentos si es exitoso
+                    startEmailResendTimer() // Inicia el temporizador
+
+                } catch (e: Exception) {
+                    _resendEmailResult.value = Result.failure(e)
+                } finally {
+                    _isLoading.value = false
+                }
+            }
+        } else {
+            _resendEmailResult.value = Result.failure(Exception("Maximum resend attempts reached"))
+        }
+    }
 
     fun onRegisterChanged(
         name: String,
@@ -80,6 +126,8 @@ class RegisterViewModel : ViewModel() {
                 val successMessage = response.token // Asegúrate de utilizar `token` como mensaje de éxito
                 _registerResult.value = Result.success(successMessage)
                 _isRegisterSuccess.value = true
+                startEmailResendTimer()
+
             } catch (e: Exception) {
                 _registerResult.value = Result.failure(e)
                 _isRegisterSuccess.value = false

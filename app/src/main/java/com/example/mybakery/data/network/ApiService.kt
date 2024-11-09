@@ -2,16 +2,14 @@ package com.example.mybakery.data.network
 
 import android.util.Log
 import com.example.mybakery.data.model.*
-import com.example.mybakery.data.model.response.BakeryResponse
-import com.example.mybakery.data.model.response.LoginResponse
-import com.example.mybakery.data.model.response.RegisterResponse
-import com.example.mybakery.data.model.response.VerificationEmailResponse
+import com.example.mybakery.data.model.response.*
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface ApiService {
 
@@ -22,7 +20,7 @@ interface ApiService {
     suspend fun register(@Body credentials: RegisterCredentials): RegisterResponse
 
     @POST("email/verification-notification")
-    suspend fun resendVerificationEmail(@Body body: Map<String, String>): VerificationEmailResponse
+    suspend fun resendVerificationEmail(@Body body: VerificationEmailCredentials): VerificationEmailResponse
 
     @GET("user/{userId}/bakery")
     suspend fun verifyBakery(
