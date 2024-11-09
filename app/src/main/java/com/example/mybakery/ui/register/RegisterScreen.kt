@@ -3,15 +3,117 @@ package com.example.mybakery.ui.register
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.example.mybakery.repository.AuthRepository
+import com.example.mybakery.ui.login.*
+import com.example.mybakery.viewmodel.RegisterViewModel
 
 @Composable
+fun RegisterScreen(viewModel: RegisterViewModel, navController: NavController) {
+    Box(
+        Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ){
+        Register(Modifier.align(Alignment.Center), viewModel)
+    }
+
+}
+
+@Composable
+fun Register(modifier: Modifier, viewModel: RegisterViewModel) {
+    val name : String by viewModel.name.observeAsState(initial = "")
+    val email : String by viewModel.email.observeAsState(initial = "")
+    val password : String by viewModel.password.observeAsState(initial = "")
+    val passwordConfirmation : String by viewModel.passwordConfirmation.observeAsState(initial = "")
+    val registerEnable : Boolean by viewModel.registerEnable.observeAsState(initial = false)
+    val isLoading : Boolean by viewModel.isLoading.observeAsState(initial = false)
+    val registerResult : Result<String>? by viewModel.registerResult.observeAsState()
+    val canSendEmail : Boolean by viewModel.canSendEmail.observeAsState(initial = false)
+    //var timer by remember { mutableStateOf(60) }
+    val coroutineScope = rememberCoroutineScope()
+
+    if(isLoading){
+        Box(Modifier.fillMaxSize()){
+            CircularProgressIndicator(Modifier.align(Alignment.Center))
+        }
+    }else{
+        Column (
+            modifier = modifier,
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ){
+            nameField(name, {viewModel.onRegisterChanged(it, email, password, passwordConfirmation)})
+            Spacer(modifier = Modifier.height(4.dp))
+            emailField(email, {viewModel.onRegisterChanged(name, it, password, passwordConfirmation)})
+            Spacer(modifier = Modifier.height(4.dp))
+            passwordField(password, {viewModel.onRegisterChanged(name, email, it, passwordConfirmation)})
+            Spacer(modifier = Modifier.height(8.dp))
+            passwordConfirmationField(passwordConfirmation, {viewModel.onRegisterChanged(name, email, password, it)})
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+    }
+}
+
+@Composable
+fun nameField(name: String, onTextFiledChange: (String) -> Unit) {
+    OutlinedTextField(
+        value = name,
+        onValueChange = {onTextFiledChange(it) },
+        label = { Text("Name") },
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@Composable
+fun emailField(email: String, onTextFiledChange: (String) -> Unit) {
+    OutlinedTextField(
+        value = email,
+        onValueChange = {onTextFiledChange(it) },
+        label = { Text("Email") },
+        modifier = Modifier.fillMaxWidth()
+
+    )
+}
+@Composable
+fun passwordField(password: String, onTextFiledChange: (String) -> Unit) {
+    OutlinedTextField(
+        value = password,
+        onValueChange = { onTextFiledChange(it) },
+        label = { Text("Password") },
+        visualTransformation = PasswordVisualTransformation(),
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+@Composable
+fun passwordConfirmationField(passwordConfirmation: String, onTextFiledChange: (String) -> Unit) {
+    OutlinedTextField(
+        value = passwordConfirmation,
+        onValueChange = { onTextFiledChange(it) },
+        label = { Text("Confirm Password") },
+        visualTransformation = PasswordVisualTransformation(),
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+@Composable
+fun registerButton(registerEnable: Boolean, onRegisterSelected: () -> Unit) {
+    Button(
+        onClick = { onRegisterSelected() },
+        enabled = registerEnable,
+        modifier = Modifier.fillMaxWidth(),
+        ) {
+        Text("Register")
+    }
+}
+
+/*@Composable
 fun RegisterScreen(
     authRepository: AuthRepository,
     onNavigateToLogin: () -> Unit
@@ -197,3 +299,4 @@ fun RegisterScreen(
         }
     }
 }
+*/

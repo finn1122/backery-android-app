@@ -14,21 +14,21 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.mybakery.R
 import com.example.mybakery.viewmodel.LoginViewModel
 import kotlinx.coroutines.launch
 
 
 @Composable
-fun LoginScreen(viewModel: LoginViewModel) {
+fun LoginScreen(viewModel: LoginViewModel, navController: NavController) {
     Box(
         Modifier
             .fillMaxSize()
             .padding(16.dp)
     ){
-        Login(Modifier.align(Alignment.Center), viewModel)
+        Login(Modifier.align(Alignment.Center), viewModel, navController)
     }
-
 
     /*var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -157,14 +157,14 @@ fun LoginScreen(viewModel: LoginViewModel) {
 }
 
 @Composable
-fun Login(modifier: Modifier, viewModel: LoginViewModel) {
+fun Login(modifier: Modifier, viewModel: LoginViewModel, navController: NavController) {
 
     val email : String by viewModel.email.observeAsState(initial = "")
     val password : String by viewModel.password.observeAsState(initial = "")
     val loginEnable : Boolean by viewModel.loginEnable.observeAsState(initial = false)
     val isLoading : Boolean by viewModel.isLoading.observeAsState(initial = false)
-    val couroutineScope = rememberCoroutineScope()
-
+    val loginResult : Result<String>? by viewModel.loginResult.observeAsState()
+    val coroutineScope = rememberCoroutineScope()
 
     if(isLoading){
         Box(Modifier.fillMaxSize()){
@@ -180,21 +180,39 @@ fun Login(modifier: Modifier, viewModel: LoginViewModel) {
             Spacer(modifier = Modifier.height(8.dp))
             ForgotPassword(Modifier.align(Alignment.End))
             Spacer(modifier = Modifier.height(16.dp))
-            LoginButton(loginEnable) {
-                couroutineScope.launch {
+            LoginButton(
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                loginEnable
+            ) {
+                coroutineScope.launch {
                     viewModel.onLoginSelected()
                 }
             }
+            NotRegisterYet(
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            ) {
+                navController.navigate("register")
+            }
         }
     }
+    // Mostrar mensajes basados en el resultado del login
+    loginResult?.let {
+        if (it.isSuccess) {
+            Text("Login successful: ${it.getOrNull()}", color = Color.Green)
+        } else if (it.isFailure) {
+            Text("Login failed: ${it.exceptionOrNull()?.message}", color = Color.Red)
+        }
+    }
+
 
 }
 
 @Composable
-fun LoginButton(loginEnable : Boolean, onLoginSelected: () -> Unit) {
+fun LoginButton(modifier: Modifier = Modifier, loginEnable : Boolean, onLoginSelected: () -> Unit) {
     Button(
         onClick = { onLoginSelected() },
-        enabled = loginEnable
+        enabled = loginEnable,
+        modifier = modifier
     ) {
             Text("Login")
     }
@@ -238,4 +256,14 @@ fun ForgotPassword(modifier: Modifier) {
         fontSize = 12.sp, fontWeight = FontWeight.Bold,
         color = Color(0xFFFB9600)
     )
+}
+
+@Composable
+fun NotRegisterYet(modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Button(
+        onClick = { onClick() },
+        modifier = modifier
+    ) {
+        Text("¿Aún no estás registrado?")
+    }
 }
