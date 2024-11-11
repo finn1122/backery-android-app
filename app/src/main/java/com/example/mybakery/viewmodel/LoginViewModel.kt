@@ -8,8 +8,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mybakery.data.model.LoginCredentials
-import com.example.mybakery.data.model.response.BakeryResponse
-import com.example.mybakery.data.model.response.LoginResponse
+import com.example.mybakery.data.model.bakery.BakeryResponse
 import com.example.mybakery.data.network.RetrofitClient
 import com.example.mybakery.utils.PreferencesHelper
 import kotlinx.coroutines.Dispatchers

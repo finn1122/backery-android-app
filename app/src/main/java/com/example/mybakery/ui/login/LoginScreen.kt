@@ -18,7 +18,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.mybakery.R
-import com.example.mybakery.data.model.response.BakeryResponse
+import com.example.mybakery.data.model.bakery.BakeryResponse
 import com.example.mybakery.viewmodel.LoginViewModel
 import kotlinx.coroutines.launch
 

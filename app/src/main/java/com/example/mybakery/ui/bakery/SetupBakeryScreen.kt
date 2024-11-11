@@ -1,15 +1,13 @@
 package com.example.mybakery.ui.bakery
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import com.example.mybakery.viewmodel.SetupBakeryViewModel
 
 @Composable
-fun SetupBakeryScreen() {
-    Column(
+fun SetupBakeryScreen(viewModel: SetupBakeryViewModel, navController: NavController) {
+    /*Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
@@ -19,5 +17,8 @@ fun SetupBakeryScreen() {
         Text(text = "Configura tu nueva Panadería", style = MaterialTheme.typography.headlineMedium)
         Spacer(modifier = Modifier.height(16.dp))
         Text(text = "Completa la configuración para empezar a gestionar tu panadería.", style = MaterialTheme.typography.bodyMedium)
-    }
+    }*/
+    BakeryForm(viewModel = viewModel, modifier = Modifier)
+
+
 }
