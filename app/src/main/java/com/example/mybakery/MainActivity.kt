@@ -20,7 +20,6 @@ import com.example.mybakery.viewmodel.LoginViewModel
 import com.example.mybakery.ui.theme.MyBakeryTheme
 import com.example.mybakery.viewmodel.BakerySetupViewModel
 import com.example.mybakery.viewmodel.RegisterViewModel
-import com.example.mybakery.viewmodel.SetupBakeryViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

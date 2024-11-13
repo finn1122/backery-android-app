@@ -50,6 +50,10 @@ class LoginViewModel : ViewModel() {
 
     private fun isValidEmail(email: String): Boolean = Patterns.EMAIL_ADDRESS.matcher(email).matches()
 
+    fun resetLoginSuccess() {
+        _isLoginSuccess.value = false
+    }
+
     fun onLoginSelected(context: Context){
         _isLoading.value = true
         viewModelScope.launch {

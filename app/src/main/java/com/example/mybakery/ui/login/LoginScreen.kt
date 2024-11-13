@@ -96,10 +96,10 @@ fun Login(modifier: Modifier, viewModel: LoginViewModel, navController: NavContr
                     navController.navigate("register")
                 }
 
-                if(isLoginSuccess){
-                    navController.navigate("bakery_setup") {
-                        // Elimina la pantalla de inicio de sesión del stack de navegación
-                        popUpTo("login") { inclusive = true }
+                LaunchedEffect(isLoginSuccess) {
+                    if (isLoginSuccess) {
+                        navController.navigate("bakery_setup")
+                        viewModel.resetLoginSuccess() // Restablecer después de la navegación
                     }
                 }
 

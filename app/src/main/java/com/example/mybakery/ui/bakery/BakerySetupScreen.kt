@@ -15,14 +15,22 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import com.example.mybakery.ui.register.Register
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BakerySetupScreen(viewModel: BakerySetupViewModel, navController: NavController) {
 
-    BakeryForm(
-        navController = navController,
-        viewModel = viewModel,
-        modifier = Modifier.fillMaxSize()
-    )
+    Box(
+        Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ){
+        BakeryForm(
+            viewModel,
+            navController,
+            Modifier.align(Alignment.Center)
+        )
+    }
+
+
 }

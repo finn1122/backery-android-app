@@ -22,6 +22,28 @@ class BakerySetupViewModel : ViewModel() {
     private val _saveBakeryEnable = MutableLiveData<Boolean>()
     val saveBakeryEnable: LiveData<Boolean> = _saveBakeryEnable
 
+    // New functions to update the LiveData values
+    fun updateName(newName: String) {
+        _name.value = newName
+        validateForm()
+    }
+
+    fun updateAddress(newAddress: String) {
+        _address.value = newAddress
+        validateForm()
+    }
+
+    fun updateOpeningHours(newOpeningHours: String) {
+        _openingHours.value = newOpeningHours
+        validateForm()
+    }
+
+    private fun validateForm() {
+        _saveBakeryEnable.value = isValidName(_name.value ?: "") &&
+            isValidAddress(_address.value ?: "") &&
+            isValidOpeningHours(_openingHours.value ?: "")
+    }
+
     private fun isValidName(name: String): Boolean = name.isNotBlank()
     private fun isValidAddress(address: String): Boolean = address.isNotBlank()
     private fun isValidOpeningHours(openingHours: String): Boolean = openingHours.isNotBlank()
