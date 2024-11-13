@@ -19,6 +19,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.mybakery.R
 import com.example.mybakery.data.model.bakery.BakeryResponse
+import com.example.mybakery.ui.bakery.BakerySetupScreen
+import com.example.mybakery.viewmodel.BakerySetupViewModel
 import com.example.mybakery.viewmodel.LoginViewModel
 import kotlinx.coroutines.launch
 
@@ -35,17 +37,17 @@ fun LoginScreen(viewModel: LoginViewModel, navController: NavController) {
                 )
             )
         }
-    ) {
+    ) { paddingValues -> // Usa paddingValues en vez de it
         Box(
             Modifier
                 .fillMaxSize()
+                .padding(paddingValues) // Aplica el padding proporcionado aquí
                 .padding(16.dp)
         ) {
             Login(Modifier.align(Alignment.Center), viewModel, navController)
         }
     }
 }
-
 
 @Composable
 fun Login(modifier: Modifier, viewModel: LoginViewModel, navController: NavController) {
@@ -77,9 +79,9 @@ fun Login(modifier: Modifier, viewModel: LoginViewModel, navController: NavContr
             ) {
                 HeaderImage(Modifier.align(Alignment.CenterHorizontally))
                 Spacer(modifier = Modifier.height(16.dp))
-                EmailField(email, { viewModel.onLoginChanged(it, password) })
+                EmailField(email) { viewModel.onLoginChanged(it, password) }
                 Spacer(modifier = Modifier.height(8.dp))
-                PasswordField(password, { viewModel.onLoginChanged(email, it) })
+                PasswordField(password) { viewModel.onLoginChanged(email, it) }
                 Spacer(modifier = Modifier.height(16.dp))
                 ForgotPassword(Modifier.align(Alignment.End))
                 Spacer(modifier = Modifier.height(16.dp))
@@ -95,7 +97,10 @@ fun Login(modifier: Modifier, viewModel: LoginViewModel, navController: NavContr
                 }
 
                 if(isLoginSuccess){
-                    bakeryResult
+                    navController.navigate("bakery_setup") {
+                        // Elimina la pantalla de inicio de sesión del stack de navegación
+                        popUpTo("login") { inclusive = true }
+                    }
                 }
 
                 // Mostrar mensajes basados en el resultado del login
