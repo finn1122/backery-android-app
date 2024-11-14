@@ -98,7 +98,9 @@ fun Login(modifier: Modifier, viewModel: LoginViewModel, navController: NavContr
 
                 LaunchedEffect(isLoginSuccess) {
                     if (isLoginSuccess) {
-                        navController.navigate("bakery_setup")
+                        navController.navigate("bakery_setup") {
+                            popUpTo("login") { inclusive = true }
+                        }
                         viewModel.resetLoginSuccess() // Restablecer después de la navegación
                     }
                 }
