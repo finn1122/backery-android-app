@@ -7,33 +7,16 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.example.mybakery.R
-import com.example.mybakery.data.model.bakery.BakeryResponse
-import com.example.mybakery.ui.login.*
-import com.example.mybakery.ui.register.*
 import com.example.mybakery.viewmodel.BakerySetupViewModel
 import android.graphics.BitmapFactory
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.mybakery.viewmodel.SetupBakeryViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
