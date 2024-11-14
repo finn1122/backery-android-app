@@ -1,9 +1,5 @@
 package com.example.mybakery.viewmodel
 
-import android.graphics.Bitmap
-import android.util.Base64
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mybakery.data.model.bakery.Bakery
@@ -11,10 +7,25 @@ import com.example.mybakery.data.model.bakery.BakeryRequest
 import com.example.mybakery.data.model.bakery.BakeryResponse
 import com.example.mybakery.data.network.RetrofitClient
 import kotlinx.coroutines.launch
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
+import android.app.Application
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.util.Base64
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
+import com.example.mybakery.R
+import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 
-class SetupBakeryViewModel : ViewModel() {
+
+class SetupBakeryViewModel(application: Application) : AndroidViewModel(application) {
     private val apiService = RetrofitClient.apiService
+
+    private val defaultProfilePictureResource = R.drawable.logo
 
     private val _name = MutableLiveData<String>()
     val name: LiveData<String> = _name
@@ -38,18 +49,23 @@ class SetupBakeryViewModel : ViewModel() {
     val isLoading: LiveData<Boolean> = _isLoading
 
     private val _saveBakeryEnable = MutableLiveData<Boolean>()
+
     val saveBakeryEnable: LiveData<Boolean> = _saveBakeryEnable
+
+    init {
+        // Cargar la imagen predeterminada desde el archivo drawable/logo.png
+        val defaultBitmap = BitmapFactory.decodeResource(application.resources, defaultProfilePictureResource)
+        _profilePictureBitmap.value = defaultBitmap
+    }
 
     fun isValidName(name: String): Boolean = name.isNotBlank()
 
     fun isValidAddress(address: String): Boolean = address.isNotBlank()
 
-    fun isValidOpeningHours(openingHours: String): Boolean {
-        return openingHours.isNotBlank() && openingHours.matches(Regex("\\d{2}:\\d{2}-\\d{2}:\\d{2}"))
-    }
+    fun isValidOpeningHours(openingHours: String):  Boolean = openingHours.isNotBlank()
 
-    fun isValidProfilePicture(profilePictureUrl: String?, profilePictureBitmap: Bitmap?): Boolean {
-        return !profilePictureUrl.isNullOrBlank() || profilePictureBitmap != null
+    fun isValidProfilePicture(profilePictureBitmap: Bitmap?): Boolean {
+        return profilePictureBitmap != null
     }
 
     fun isValidActive(active: Boolean): Boolean = active
@@ -58,20 +74,18 @@ class SetupBakeryViewModel : ViewModel() {
         name: String,
         address: String,
         openingHours: String,
-        profilePictureUrl: String?,
         profilePictureBitmap: Bitmap?,
         active: Boolean
     ) {
         _name.value = name
         _address.value = address
         _openingHours.value = openingHours
-        _profilePictureUrl.value = profilePictureUrl
         _profilePictureBitmap.value = profilePictureBitmap
         _active.value = active
         _saveBakeryEnable.value = isValidName(name)
             && isValidAddress(address)
             && isValidOpeningHours(openingHours)
-            && isValidProfilePicture(profilePictureUrl, profilePictureBitmap)
+            && isValidProfilePicture(profilePictureBitmap)
             && isValidActive(active)
     }
 
@@ -160,5 +174,9 @@ class SetupBakeryViewModel : ViewModel() {
             profilePicture = base64Image,
             active = data.active
         )
+    }
+
+    fun getEffectiveProfilePictureBitmap(): Bitmap? {
+        return _profilePictureBitmap.value ?: BitmapFactory.decodeResource(getApplication<Application>().resources, defaultProfilePictureResource)
     }
 }
