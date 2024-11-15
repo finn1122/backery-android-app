@@ -39,7 +39,8 @@ fun BakerySetupScreen(viewModel: BakerySetupViewModel, navController: NavControl
                 BakeryForm(
                     viewModel,
                     navController,
-                    Modifier.align(Alignment.Center)
+                    Modifier.align(Alignment.Center),
+                    onBack = { showForm = false }
                 )
             } else {
                 WelcomeScreen(

@@ -2,10 +2,13 @@ package com.example.mybakery.ui.bakery
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.*
@@ -20,36 +23,40 @@ import androidx.navigation.NavController
 import com.example.mybakery.R
 import com.example.mybakery.viewmodel.BakerySetupViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BakeryForm (
     viewModel: BakerySetupViewModel,
     navController: NavController,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onBack: () -> Unit
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Bakery Setup", fontSize = 20.sp) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
-            )
-        }
-    ) { paddingValues ->
-        Box(
-            Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp)
-        ) {
-            Form(
-                modifier = Modifier.align(Alignment.Center),
-                viewModel = viewModel,
-                navController = navController
-            )
-        }
+
+    // Manejo del botón físico de regresar
+    BackHandler {
+        onBack()
     }
+    // Caja contenedora
+    Box(
+        Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        // Botón de retroceso personalizado
+        IconButton(
+            onClick = { onBack() },
+            modifier = Modifier.align(Alignment.TopStart)
+        ) {
+            Icon(Icons.Default.ArrowBack, contentDescription = "Retroceder")
+        }
+
+        Form(
+            modifier = Modifier.align(Alignment.Center),
+            viewModel = viewModel,
+            navController = navController
+        )
+    }
+
+
 }
 
 @Composable
