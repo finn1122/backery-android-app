@@ -54,6 +54,9 @@ class BakerySetupViewModel(application: Application) : AndroidViewModel(applicat
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
 
+    private val _isBakeryCreated = MutableLiveData<Boolean>()
+    val isBakeryCreated: LiveData<Boolean> get() = _isBakeryCreated
+
 
     init {
         // Cargar la imagen predeterminada desde el archivo drawable/logo.png
@@ -116,10 +119,10 @@ class BakerySetupViewModel(application: Application) : AndroidViewModel(applicat
             }
 
             try {
-                val response: Response<BakeryResponse> = withContext(Dispatchers.IO) {
+                val response: Response<String> = withContext(Dispatchers.IO) {
                     apiService.createBakery(
                         authHeader,
-                        userId,
+                        userId,  // Pasar el userId como parámetro de ruta en lugar de RequestBody
                         nameRequestBody,
                         addressRequestBody,
                         openingHoursRequestBody,
@@ -130,7 +133,9 @@ class BakerySetupViewModel(application: Application) : AndroidViewModel(applicat
 
                 if (response.isSuccessful) {
                     val body = response.body()
-                    (saveBakeryResult as MutableLiveData).value = body?.let { Result.success(listOf(it)) }
+                    if (body == "success") {
+                        _isBakeryCreated.value = true
+                    }
                     Log.d("BakerySetupViewModel", "Success: $body")
                 } else {
                     Log.e("BakerySetupViewModel", "Error: ${response.errorBody()?.string()}")

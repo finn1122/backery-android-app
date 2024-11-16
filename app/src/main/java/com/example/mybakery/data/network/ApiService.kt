@@ -43,7 +43,7 @@ interface ApiService {
         @Part("openingHours") openingHours: RequestBody,
         @Part profilePicture: MultipartBody.Part?,
         @Part("active") active: RequestBody
-    ): Response<BakeryResponse>
+    ): Response<String>
 
     // Método para actualizar una panadería
     @PUT("user/{userId}/bakery/{bakeryId}")
