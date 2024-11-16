@@ -21,6 +21,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.mybakery.R
+import com.example.mybakery.data.model.bakery.Bakery
+import com.example.mybakery.utils.PreferencesHelper
 import com.example.mybakery.viewmodel.BakerySetupViewModel
 
 @Composable
@@ -60,11 +62,16 @@ fun BakeryForm (
 }
 
 @Composable
-fun Form(modifier: Modifier, viewModel: BakerySetupViewModel, navController: NavController) {
+fun Form(
+    modifier: Modifier,
+    viewModel: BakerySetupViewModel,
+    navController: NavController
+) {
     val name: String by viewModel.name.observeAsState(initial = "")
     val address: String by viewModel.address.observeAsState(initial = "")
     val openingHours: String by viewModel.openingHours.observeAsState(initial = "")
     val profilePictureBitmap: Bitmap? by viewModel.profilePictureBitmap.observeAsState()
+    val saveBakeryEnable: Boolean by viewModel.saveBakeryEnable.observeAsState(initial = false)
 
     Card(
         modifier = modifier
@@ -92,18 +99,21 @@ fun Form(modifier: Modifier, viewModel: BakerySetupViewModel, navController: Nav
                 onImageSelected = { viewModel.onBakeryChanged(name, address, openingHours, it) }
             )
 
+
             // Botón para guardar
             Button(
-                onClick = { /* Acción de guardar */ },
+                onClick = {
+                    // Llamar a la función submitBakeryData del ViewModel
+                    viewModel.submitBakeryData()
+                },
                 modifier = Modifier.padding(top = 16.dp),
-                enabled = viewModel.saveBakeryEnable.observeAsState(initial = false).value
+                enabled = saveBakeryEnable
             ) {
                 Text("Guardar")
             }
         }
     }
 }
-
 @Composable
 fun NameField(name: String, onTextFieldChanged: (String) -> Unit) {
     OutlinedTextField(

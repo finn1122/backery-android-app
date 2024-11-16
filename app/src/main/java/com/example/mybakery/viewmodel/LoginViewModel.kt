@@ -73,6 +73,7 @@ class LoginViewModel : ViewModel() {
                 // Guardar el token y los datos del usuario en SharedPreferences
                 val preferencesHelper = PreferencesHelper(context)
                 preferencesHelper.saveToken(response.token)
+                preferencesHelper.saveUserId(response.user.id)
                 preferencesHelper.saveUserName(response.user.name)
                 preferencesHelper.saveUserEmail(response.user.email)
                 // Suponiendo que el usuario puede tener múltiples roles, guarda el primero en este ejemplo

@@ -1,5 +1,7 @@
 package com.example.mybakery.data.model.bakery
 
+import android.graphics.Bitmap
+
 data class BakeryRequest(
     val name: String,
     val address: String,

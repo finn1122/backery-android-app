@@ -4,6 +4,7 @@ import android.app.Application
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
+import android.util.Log
 import android.util.Patterns
 import androidx.lifecycle.*
 import com.example.mybakery.R
@@ -11,7 +12,15 @@ import com.example.mybakery.data.model.bakery.Bakery
 import com.example.mybakery.data.model.bakery.BakeryRequest
 import com.example.mybakery.data.model.bakery.BakeryResponse
 import com.example.mybakery.data.network.RetrofitClient
+import com.example.mybakery.utils.PreferencesHelper
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import retrofit2.Response
 import java.io.ByteArrayOutputStream
 
 class BakerySetupViewModel(application: Application) : AndroidViewModel(application) {
@@ -35,6 +44,9 @@ class BakerySetupViewModel(application: Application) : AndroidViewModel(applicat
 
     private val _saveBakeryEnable = MutableLiveData<Boolean>()
     val saveBakeryEnable: LiveData<Boolean> = _saveBakeryEnable
+
+    private val _saveBakeryResult = MutableLiveData<Result<List<BakeryResponse>?>>()
+    val saveBakeryResult: LiveData<Result<List<BakeryResponse>?>> = _saveBakeryResult
 
     private val _active = MutableLiveData<Boolean>()
     val active: LiveData<Boolean> = _active
@@ -76,36 +88,63 @@ class BakerySetupViewModel(application: Application) : AndroidViewModel(applicat
             && isValidProfilePicture(profilePictureBitmap)
     }
 
-    fun submitBakeryData(userId: Int, token: String, bakeryData: Bakery) {
+    fun submitBakeryData() {
+        _isLoading.value = true
+        val application = getApplication<Application>()
+        val token = PreferencesHelper(application).getToken()
+        val userId = PreferencesHelper(application).getUserId()
+
         viewModelScope.launch {
             _isLoading.value = true
 
-            val request = bakeryDataToRequest(bakeryData)
+            val authHeader = "Bearer $token"
 
-            val response = apiService.createBakery(
-                token = token,
-                userId = userId,
-                request = request
-            )
+            // Crear partes del cuerpo del formulario
+            val userIdRequestBody = RequestBody.create("text/plain".toMediaTypeOrNull(), userId.toString())
+            val nameRequestBody = RequestBody.create("text/plain".toMediaTypeOrNull(), name.value ?: "")
+            val addressRequestBody = RequestBody.create("text/plain".toMediaTypeOrNull(), address.value ?: "")
+            val openingHoursRequestBody = RequestBody.create("text/plain".toMediaTypeOrNull(), openingHours.value ?: "")
+            val activeRequestBody = RequestBody.create("text/plain".toMediaTypeOrNull(), "true")
 
-            if (response.isSuccessful) {
-                val updatedBakeryData = mapResponseToData(response.body()!!)
-                _name.value = updatedBakeryData.name
-                _address.value = updatedBakeryData.address
-                _openingHours.value = updatedBakeryData.openingHours
-                _profilePictureUrl.value = updatedBakeryData.profilePictureUrl
-                _profilePictureBitmap.value = null  // Limpiar para evitar confusión
-                _active.value = updatedBakeryData.active
-                // Manejar el éxito
-            } else {
-                // Manejar el error
+            // Crear la parte del archivo para la imagen
+            val profilePicturePart = profilePictureBitmap.value?.let { bitmap ->
+                val outputStream = ByteArrayOutputStream()
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+                val byteArray = outputStream.toByteArray()
+                val requestBody = RequestBody.create("image/jpeg".toMediaTypeOrNull(), byteArray)
+                MultipartBody.Part.createFormData("profilePicture", "profile.jpg", requestBody)
             }
 
-            _isLoading.value = false
+            try {
+                val response: Response<BakeryResponse> = withContext(Dispatchers.IO) {
+                    apiService.createBakery(
+                        authHeader,
+                        userId,
+                        nameRequestBody,
+                        addressRequestBody,
+                        openingHoursRequestBody,
+                        profilePicturePart,
+                        activeRequestBody
+                    )
+                }
+
+                if (response.isSuccessful) {
+                    val body = response.body()
+                    (saveBakeryResult as MutableLiveData).value = body?.let { Result.success(listOf(it)) }
+                    Log.d("BakerySetupViewModel", "Success: $body")
+                } else {
+                    Log.e("BakerySetupViewModel", "Error: ${response.errorBody()?.string()}")
+                }
+
+            } catch (e: Exception) {
+                Log.e("BakerySetupViewModel", "Exception: ${e.message}")
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
 
-    fun updateBakeryData(userId: Int, bakeryId: Int, token: String, bakeryData: Bakery) {
+    /*fun updateBakeryData(userId: Int, bakeryId: Int, token: String, bakeryData: Bakery) {
         viewModelScope.launch {
             _isLoading.value = true
 
@@ -133,7 +172,7 @@ class BakerySetupViewModel(application: Application) : AndroidViewModel(applicat
 
             _isLoading.value = false
         }
-    }
+    }*/
 
     private fun mapResponseToData(response: BakeryResponse): Bakery {
         return Bakery(
@@ -146,7 +185,7 @@ class BakerySetupViewModel(application: Application) : AndroidViewModel(applicat
         )
     }
 
-    private fun bakeryDataToRequest(data: Bakery): BakeryRequest {
+    /*private fun bakeryDataToRequest(data: Bakery): BakeryRequest {
         val base64Image = data.profilePictureBitmap?.let {
             val stream = ByteArrayOutputStream()
             it.compress(Bitmap.CompressFormat.JPEG, 100, stream)
@@ -158,10 +197,10 @@ class BakerySetupViewModel(application: Application) : AndroidViewModel(applicat
             name = data.name,
             address = data.address,
             openingHours = data.openingHours,
-            profilePicture = base64Image,
+            profilePicture = base64Image?,
             active = data.active
         )
-    }
+    }*/
 
 
 }

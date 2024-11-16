@@ -9,6 +9,7 @@ class PreferencesHelper(context: Context) {
 
     companion object {
         private const val KEY_TOKEN = "token"
+        private const val KEY_USER_ID = "id"
         private const val KEY_USER_ROLE = "user_role"
         private const val KEY_USER_NAME = "user_name"
         private const val KEY_USER_EMAIL = "user_email"
@@ -20,6 +21,14 @@ class PreferencesHelper(context: Context) {
 
     fun getToken(): String? {
         return preferences.getString(KEY_TOKEN, null)
+    }
+
+    fun saveUserId(id: Int) {
+        preferences.edit().putInt(KEY_USER_ID, id).apply()
+    }
+
+    fun getUserId(): Int {
+        return preferences.getInt(KEY_USER_ID, 0)
     }
 
     fun saveUserRole(role: String) {

@@ -5,6 +5,7 @@ import com.example.mybakery.data.model.bakery.BakeryRequest
 import com.example.mybakery.data.model.bakery.BakeryResponse
 import com.example.mybakery.data.model.response.*
 import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -32,12 +33,16 @@ interface ApiService {
         @Path("userId") userId: Int
     ): Response<List<BakeryResponse>> // Cambiar el tipo de respuesta a List<BakeryResponse>
 
-    // Método para crear una panadería
+    @Multipart
     @POST("user/{userId}/bakery")
     suspend fun createBakery(
         @Header("Authorization") token: String,
         @Path("userId") userId: Int,
-        @Body request: BakeryRequest
+        @Part("name") name: RequestBody,
+        @Part("address") address: RequestBody,
+        @Part("openingHours") openingHours: RequestBody,
+        @Part profilePicture: MultipartBody.Part?,
+        @Part("active") active: RequestBody
     ): Response<BakeryResponse>
 
     // Método para actualizar una panadería
