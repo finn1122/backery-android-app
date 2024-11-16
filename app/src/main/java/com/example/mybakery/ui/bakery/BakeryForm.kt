@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.mybakery.R
 import com.example.mybakery.data.model.bakery.Bakery
+import com.example.mybakery.data.model.bakery.BakeryResponse
 import com.example.mybakery.utils.PreferencesHelper
 import com.example.mybakery.viewmodel.BakerySetupViewModel
 
@@ -73,56 +74,77 @@ fun Form(
     val profilePictureBitmap: Bitmap? by viewModel.profilePictureBitmap.observeAsState()
     val saveBakeryEnable: Boolean by viewModel.saveBakeryEnable.observeAsState(initial = false)
     val isLoading: Boolean by viewModel.isLoading.observeAsState(initial = false)
+    val isBakeryCreated: Boolean by viewModel.isBakeryCreated.observeAsState(initial = false)
+    val saveBakeryResult: Result<String>? by viewModel.saveBakeryResult.observeAsState()
 
-
-    if(isLoading){
-        Box(Modifier.fillMaxSize()){
+    if (isLoading) {
+        Box(Modifier.fillMaxSize()) {
             CircularProgressIndicator(Modifier.align(Alignment.Center))
         }
-    }else{
-        Card(
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // Nombre de la panadería
-                NameField(name) { viewModel.onBakeryChanged(it, address, openingHours, profilePictureBitmap) }
-
-                // Dirección de la panadería
-                AddressField(address) { viewModel.onBakeryChanged(name, it, openingHours, profilePictureBitmap) }
-
-                // Horario de atención
-                OpeningHoursField(openingHours) { viewModel.onBakeryChanged(name, address, it, profilePictureBitmap) }
-
-                // Imagen de perfil
-                ProfilePicture(
-                    profilePictureBitmap = profilePictureBitmap,
-                    onImageSelected = { viewModel.onBakeryChanged(name, address, openingHours, it) }
+    } else {
+        Column(modifier = Modifier.fillMaxSize()) {
+            if (isBakeryCreated) {
+                Text(
+                    "¡Panadería creada con éxito!",
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.align(Alignment.CenterHorizontally).padding(16.dp)
                 )
+            } else {
+                val result = saveBakeryResult
+                if (result != null && result.isFailure) {
+                    val exceptionMessage = result.exceptionOrNull()?.message
+                    Text(
+                        "Error: $exceptionMessage",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.align(Alignment.CenterHorizontally).padding(16.dp)
+                    )
+                }
+            }
 
-
-                // Botón para guardar
-                Button(
-                    onClick = {
-                        // Llamar a la función submitBakeryData del ViewModel
-                        viewModel.submitBakeryData()
-                    },
-                    modifier = Modifier.padding(top = 16.dp),
-                    enabled = saveBakeryEnable
+            Card(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text("Guardar")
+                    // Nombre de la panadería
+                    NameField(name) { viewModel.onBakeryChanged(it, address, openingHours, profilePictureBitmap) }
+
+                    // Dirección de la panadería
+                    AddressField(address) { viewModel.onBakeryChanged(name, it, openingHours, profilePictureBitmap) }
+
+                    // Horario de atención
+                    OpeningHoursField(openingHours) { viewModel.onBakeryChanged(name, address, it, profilePictureBitmap) }
+
+                    // Imagen de perfil
+                    ProfilePicture(
+                        profilePictureBitmap = profilePictureBitmap,
+                        onImageSelected = { viewModel.onBakeryChanged(name, address, openingHours, it) }
+                    )
+
+                    // Botón para guardar
+                    Button(
+                        onClick = {
+                            viewModel.submitBakeryData()
+                        },
+                        modifier = Modifier.padding(top = 16.dp),
+                        enabled = saveBakeryEnable
+                    ) {
+                        Text("Guardar")
+                    }
                 }
             }
         }
     }
-
 }
+
 @Composable
 fun NameField(name: String, onTextFieldChanged: (String) -> Unit) {
     OutlinedTextField(

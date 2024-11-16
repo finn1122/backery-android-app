@@ -45,8 +45,8 @@ class BakerySetupViewModel(application: Application) : AndroidViewModel(applicat
     private val _saveBakeryEnable = MutableLiveData<Boolean>()
     val saveBakeryEnable: LiveData<Boolean> = _saveBakeryEnable
 
-    private val _saveBakeryResult = MutableLiveData<Result<List<BakeryResponse>?>>()
-    val saveBakeryResult: LiveData<Result<List<BakeryResponse>?>> = _saveBakeryResult
+    private val _saveBakeryResult = MutableLiveData<Result<String>>()
+    val saveBakeryResult: LiveData<Result<String>> = _saveBakeryResult
 
     private val _active = MutableLiveData<Boolean>()
     val active: LiveData<Boolean> = _active
@@ -135,13 +135,18 @@ class BakerySetupViewModel(application: Application) : AndroidViewModel(applicat
                     val body = response.body()
                     if (body == "success") {
                         _isBakeryCreated.value = true
+                        _saveBakeryResult.value = Result.success(body ?: "Success")
+                    } else {
+                        _saveBakeryResult.value = Result.failure(Exception("Unexpected success response"))
                     }
                     Log.d("BakerySetupViewModel", "Success: $body")
                 } else {
-                    Log.e("BakerySetupViewModel", "Error: ${response.errorBody()?.string()}")
+                    val errorMessage = response.errorBody()?.string() ?: "Unknown error"
+                    _saveBakeryResult.value = Result.failure(Exception(errorMessage))
+                    Log.e("BakerySetupViewModel", "Error: $errorMessage")
                 }
-
             } catch (e: Exception) {
+                _saveBakeryResult.value = Result.failure(e)
                 Log.e("BakerySetupViewModel", "Exception: ${e.message}")
             } finally {
                 _isLoading.value = false
